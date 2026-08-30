@@ -39,6 +39,41 @@ app.get("/login.html", (req, res) => {
 app.get("/Dashboard.html", (req, res) => {
   res.sendFile(__dirname + "/Dashboard.html");
 });
+app.get("/Resource.html", (req, res) => {
+  res.sendFile(__dirname + "/Resource.html");
+});
+
+app.get("/Worker.html", (req, res) => {
+  res.sendFile(__dirname + "/Worker.html");
+});
+
+app.get("/Incident.html", (req, res) => {
+  res.sendFile(__dirname + "/Incident.html");
+});
+
+app.get("/Alert.html", (req, res) => {
+  res.sendFile(__dirname + "/Alert.html");
+});
+
+app.get("/setting.html", (req, res) => {
+  res.sendFile(__dirname + "/setting.html");
+});
+
+app.get("/help.html", (req, res) => {
+  res.sendFile(__dirname + "/help.html");
+});
+
+app.get("/safety.html", (req, res) => {
+  res.sendFile(__dirname + "/safety.html");
+});
+
+app.get("/reset-password.html", (req, res) => {
+  res.sendFile(__dirname + "/reset-password.html");
+});
+
+app.get("/a.html", (req, res) => {
+  res.sendFile(__dirname + "/a.html");
+});
 // FortyGuard Environmental Parameters
 app.post("/api/fortyguard-test", async (req, res) => {
   try {
