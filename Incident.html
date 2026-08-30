@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident History — HeatShield</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        warm: '#F7F9FB',
+                        softgrey: '#EEF2F6',
+                        charcoal: '#263238',
+                        coolgrey: '#6B7785',
+                        lightborder: '#DDE4EB',
+                        blueaccent: '#3B82F6',
+                        skyblue: '#A9D8EA',
+                        warmyellow: '#FFE2A8',
+                        mint: '#D7F0E2',
+                        rose: '#FFD6D2',
+                        sidebar: '#ECE9F8',
+                        sidebarHover: 'rgba(255,255,255,0.06)',
+                        sidebarActive: 'rgba(59,130,246,0.15)',
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F7F9FB; color: #263238; -webkit-font-smoothing: antialiased; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #DDE4EB; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        /* ===== Sidebar (Matching Settings Page) ===== */
+        :root {
+            --sidebar-bg: #ECE9F8;
+            --sidebar-border: #D9D3EF;
+            --sidebar-active: #FFFFFF;
+            --sidebar-text: #5B4B8A;
+            --sidebar-muted: #8579B0;
+            --sidebar-hover-bg: rgba(124,58,237,0.08);
+            --sidebar-hover-text: #2D1B5E;
+            --sidebar-ai: #7C3AED;
+            --sidebar-primary: #2563EB;
+            --shadow-xs: 0 1px 2px rgba(13, 13, 198, 0.03);
+            --shadow-sm: 0 1px 2px rgba(38,50,56,0.04), 0 1px 3px rgba(38,50,56,0.04);
+            --border: #E5E9ED;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: 256px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 40;
+            transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+        }
+        .sidebar-brand {
+            padding: 24px 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+        .brand-mark {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--sidebar-primary), #2563EB);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+            position: relative;
+            flex-shrink: 0;
+        }
+        .brand-mark::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 10px;
+            background: radial-gradient(circle at 30% 25%,rgba(33, 21, 207, 0.35),transparent 55%);
+        }
+        .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .brand-name {
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 0.08em;
+            color: #263238;
+        }
+        .brand-tag {
+            font-size: 10px;
+            color: var(--sidebar-muted);
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            margin-top: 2px;
+        }
+
+        .sidebar-section { padding: 8px 12px 4px; margin-top: 10px; }
+        .sidebar-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--sidebar-muted);
+            padding: 0 10px 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 9px 11px;
+            border-radius: 10px;
+            color: var(--sidebar-text);
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            margin: 2px 5px;
+            transition: background 0.2s ease, color 0.2s ease;
+            position: relative;
+        }
+        .nav-item i {
+            width: 17px;
+            font-size: 13.5px;
+            text-align: center;
+            color: var(--sidebar-muted);
+            transition: color 0.2s ease;
+        }
+        .nav-item:hover {
+            background: var(--sidebar-hover-bg);
+            color: var(--sidebar-hover-text);
+        }
+        .nav-item:hover i { color: var(--sidebar-ai); }
+        .nav-item.active {
+            background: var(--sidebar-active);
+            color: var(--sidebar-hover-text);
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+        }
+        .nav-item.active i { color: var(--sidebar-primary); }
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            left: -5px;
+            top: 8px; bottom: 8px;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: var(--sidebar-primary);
+        }
+
+        .sidebar-footer { margin-top: auto; padding: 14px; }
+        .user-card {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 11px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-xs);
+        }
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--sidebar-primary), #7CC4DB);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+        }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #263238;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .user-role {
+            font-size: 10.5px;
+            color: var(--sidebar-muted);
+            font-weight: 500;
+        }
+
+        /* Mobile Sidebar Toggle */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 14px; left: 14px;
+            width: 36px; height: 36px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: var(--shadow-sm);
+            color: #6B7785;
+            font-size: 14px;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(38,50,56,0.3);
+            backdrop-filter: blur(2px);
+            z-index: 39;
+        }
+        .sidebar-overlay.show { display: block; }
+
+        /* ===== Summary Cards ===== */
+        .summary-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px -6px rgba(38,50,56,0.08);
+            border-color: #C8D2DC;
+        }
+        .summary-card:hover .summary-icon {
+            transform: scale(1.1);
+        }
+        .summary-icon {
+            transition: transform 0.2s ease;
+        }
+
+        /* ===== Table Row ===== */
+        .table-row {
+            transition: background 0.15s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .table-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            border-radius: 0 2px 2px 0;
+            background: #3B82F6;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .table-row:hover {
+            background: #F1F5F9;
+        }
+        .table-row:hover::before {
+            opacity: 1;
+        }
+
+        /* ===== View Button ===== */
+        .view-btn {
+            transition: background 0.15s ease, color 0.15s ease, gap 0.15s ease;
+            gap: 4px;
+        }
+        .view-btn:hover {
+            background: rgba(59,130,246,0.08);
+            color: #2563EB;
+            gap: 6px;
+        }
+        .view-btn:hover .view-arrow {
+            transform: translateX(2px);
+        }
+        .view-arrow {
+            transition: transform 0.15s ease;
+        }
+
+        /* ===== Risk Badge ===== */
+        .risk-badge {
+            transition: transform 0.15s ease;
+        }
+        .risk-badge:hover { transform: scale(1.04); }
+
+        /* ===== Status Badge ===== */
+        @keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+        .status-pulse { animation: statusPulse 2s ease-in-out infinite; }
+
+        /* ===== Drawer ===== */
+        .drawer-overlay {
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .drawer-overlay.open { opacity: 1; visibility: visible; }
+        .drawer-panel {
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .drawer-overlay.open .drawer-panel { transform: translateX(0); }
+
+        /* ===== Timeline ===== */
+        .timeline-line {
+            position: absolute;
+            left: 7px;
+            top: 20px;
+            bottom: 0;
+            width: 1.5px;
+            background: #DDE4EB;
+        }
+        .timeline-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid white;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== Filters ===== */
+        .filter-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7785' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .filter-select:focus {
+            border-color: rgba(59,130,246,0.4);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+            outline: none;
+        }
+
+        /* ===== Buttons ===== */
+        .btn-primary { transition: all 0.2s ease; }
+        .btn-primary:hover { background: #2563EB; box-shadow: 0 4px 12px -2px rgba(59,130,246,0.3); }
+        .btn-ghost { transition: all 0.15s ease; }
+        .btn-ghost:hover { background: #F1F5F9; }
+
+        /* ===== Responsive Behavior ===== */
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content-wrapper { margin-left: 0 !important; }
+            .mobile-toggle { display: flex !important; }
+        }
+
+        /* ===== Search ===== */
+        .search-input {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .search-input:focus {
+            border-color: rgba(59,130,246,0.4);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+            outline: none;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = 'https://keztqrrtzhxjvstfuqfp.supabase.co';
+
+const SUPABASE_PUBLISHABLE_KEY =
+  'sb_publishable_79OlgP1MibPc_l0l7MN5Qg_dqID04ua';
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+console.log('✅ Supabase client initialized');
+</script>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+<!-- Mobile toggle -->
+<button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation">
+  <i class="fa-solid fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ==================== SIDEBAR ==================== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">HEATSHIELD</div>
+      <div class="brand-tag">AI Heat Safety</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Operations</div>
+    <a href="Dashboard.html" class="nav-item">
+      <i class="fa-solid fa-gauge-high"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="heat-map.html" class="nav-item">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>Heat Map</span>
+    </a>
+    <a href="Resource.html" class="nav-item">
+      <i class="fa-solid fa-scale-balanced"></i>
+      <span>Resource Allocation</span>
+    </a>
+    <a href="safety.html" class="nav-item">
+      <i class="fa-solid fa-clipboard-check"></i>
+      <span>Safety Actions</span>
+    </a>
+    <a href="Worker.html" class="nav-item">
+      <i class="fa-solid fa-people-group"></i>
+      <span>Worker Groups</span>
+    </a>
+    <a href="Alert.html" class="nav-item">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Alerts</span>
+    </a>
+    <a href="Incident.html" class="nav-item active">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>Incident History</span>
+    </a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-label">System</div>
+    <a href="setting.html" class="nav-item">
+      <i class="fa-solid fa-gear"></i>
+      <span>Settings</span>
+    </a>
+    <a href="help.html" class="nav-item">
+      <i class="fa-solid fa-circle-question"></i>
+      <span>Help</span>
+    </a>
+  </div>
+  
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">JS</div>
+      <div class="user-info">
+        <div class="user-name">Jane Smith</div>
+        <div class="user-role">Texas Operations</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<div class="main-content-wrapper flex-1 flex flex-col min-w-0 overflow-hidden ml-64">
+
+    <!-- Top Bar -->
+    <header class="h-16 bg-white border-b border-lightborder/60 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="hidden sm:flex items-center gap-1.5 text-xs text-coolgrey/50">
+                <span class="hover:text-coolgrey cursor-pointer transition-colors">Operations</span>
+                <i class="fa-solid fa-chevron-right text-[8px] text-coolgrey/25"></i>
+                <span class="text-charcoal/70 font-medium">Incident History</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="relative p-2 rounded-lg hover:bg-softgrey transition-colors">
+                <i class="fa-regular fa-bell text-coolgrey text-base"></i>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-400 border-2 border-white"></span>
+            </button>
+            <div class="w-8 h-8 rounded-full bg-blueaccent/10 flex items-center justify-center text-xs font-bold text-blueaccent">JS</div>
+        </div>
+    </header>
+
+    <!-- Scrollable Content -->
+    <main class="flex-1 overflow-y-auto">
+
+        <!-- Page Header -->
+        <div class="px-4 md:px-6 pt-6 pb-2">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-[1.7rem] font-bold text-charcoal tracking-tight">Incident History</h1>
+                    <p class="text-sm text-coolgrey mt-0.5">Review and track previous workplace heat incidents</p>
+                </div>
+                <button class="btn-primary inline-flex items-center gap-2 bg-blueaccent text-white text-sm font-medium px-4 py-2.5 rounded-lg self-start sm:self-auto flex-shrink-0">
+                    <i class="fa-solid fa-download text-xs"></i>
+                    Export Report
+                </button>
+            </div>
+            <div class="mt-4 relative max-w-md">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-coolgrey/30 text-xs"></i>
+                <input id="searchInput" type="text" placeholder="Search by site, incident type, or ID..."
+                    class="search-input w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-lightborder rounded-lg placeholder:text-coolgrey/40"
+                    oninput="filterTable()">
+            </div>
+        </div>
+
+ <!-- Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+    <!-- Total Incidents -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-sm text-gray-400">
+            Total Incidents
+        </p>
+
+        <p id="totalIncidents"
+           class="text-3xl font-bold text-gray-800 mt-2">
+            0
+        </p>
+    </div>
+
+
+    <!-- High Risk -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-sm text-gray-400">
+            High Risk
+        </p>
+
+        <p id="highRiskIncidents"
+           class="text-3xl font-bold text-orange-500 mt-2">
+            0
+        </p>
+    </div>
+
+
+    <!-- Open / Monitoring -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-sm text-gray-400">
+            Open / Monitoring
+        </p>
+
+        <p id="openMonitoringIncidents"
+           class="text-3xl font-bold text-blue-500 mt-2">
+            0
+        </p>
+    </div>
+
+
+    <!-- Resolved -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-sm text-gray-400">
+            Resolved
+        </p>
+
+        <p id="resolvedIncidents"
+           class="text-3xl font-bold text-green-500 mt-2">
+            0
+        </p>
+    </div>
+
+</div>
+
+        <!-- Filters -->
+        <div class="px-4 md:px-6 pb-3">
+            <div class="bg-white rounded-xl border border-lightborder/60 p-3">
+                <div class="flex flex-wrap items-end gap-2.5">
+                    <div class="flex-1 min-w-[130px] max-w-[170px]">
+                        <label class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-1 block">Date Range</label>
+                        <select id="filterDate" class="filter-select w-full text-sm bg-softgrey/50 border border-lightborder/50 rounded-lg px-3 py-2 text-charcoal" onchange="filterTable()">
+                            <option value="all">Last 30 days</option>
+                            <option value="7">Last 7 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[120px] max-w-[155px]">
+                        <label class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-1 block">Risk Level</label>
+                        <select id="filterRisk" class="filter-select w-full text-sm bg-softgrey/50 border border-lightborder/50 rounded-lg px-3 py-2 text-charcoal" onchange="filterTable()">
+                            <option value="all">All Levels</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[120px] max-w-[155px]">
+                        <label class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-1 block">Location</label>
+                        <select id="filterLocation" class="filter-select w-full text-sm bg-softgrey/50 border border-lightborder/50 rounded-lg px-3 py-2 text-charcoal" onchange="filterTable()">
+                            <option value="all">All Sites</option>
+                            <option value="Houston Site">Houston Site</option>
+                            <option value="Dallas Site">Dallas Site</option>
+                            <option value="Austin Site">Austin Site</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[120px] max-w-[155px]">
+                        <label class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-1 block">Status</label>
+                        <select id="filterStatus" class="filter-select w-full text-sm bg-softgrey/50 border border-lightborder/50 rounded-lg px-3 py-2 text-charcoal" onchange="filterTable()">
+                            <option value="all">All Status</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Monitoring">Monitoring</option>
+                            <option value="Open">Open</option>
+                        </select>
+                    </div>
+                    <button onclick="resetFilters()" class="btn-ghost text-sm text-coolgrey px-3 py-2 rounded-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="px-4 md:px-6 pb-6">
+            <div class="bg-white rounded-xl border border-lightborder/60 overflow-hidden">
+                <div class="px-4 py-3 border-b border-lightborder/40 flex items-center justify-between">
+                    <span class="text-xs text-coolgrey/50" id="resultCount">Showing 5 incidents</span>
+                    <span class="text-[10px] font-medium text-coolgrey/30 uppercase tracking-wider bg-softgrey/50 px-2 py-0.5 rounded">Demo Data</span>
+                </div>
+                <!-- Desktop -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-lightborder/40">
+                                <th class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest px-5 py-3">ID</th>
+                                <th class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest px-4 py-3">Date & Time</th>
+                                <th class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest px-4 py-3">Site</th>
+                                <th class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest px-4 py-3">Incident Type</th>
+                                <th class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest px-4 py-3">Risk</th>
+                                <th class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest px-4 py-3">Action Taken</th>
+                                <th class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest px-4 py-3">Status</th>
+                                <th class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest px-5 py-3 text-right">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <!-- Mobile -->
+                <div class="md:hidden divide-y divide-lightborder/40" id="mobileCards"></div>
+                <!-- Empty -->
+                <div id="emptyState" class="hidden py-16 text-center">
+                    <div class="w-12 h-12 rounded-2xl bg-softgrey flex items-center justify-center mx-auto mb-3">
+                        <i class="fa-solid fa-magnifying-glass text-coolgrey/25 text-lg"></i>
+                    </div>
+                    <p class="text-sm font-medium text-charcoal/60">No incidents found</p>
+                    <p class="text-xs text-coolgrey/40 mt-1">Try adjusting your filters or search query</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ==================== DETAILS DRAWER ==================== -->
+<div id="drawerOverlay" class="drawer-overlay fixed inset-0 bg-black/30 z-50" onclick="closeDrawer()"></div>
+<div id="drawerPanel" class="drawer-panel fixed top-0 right-0 bottom-0 w-full max-w-lg bg-white shadow-2xl z-50 flex flex-col">
+    <div class="flex items-center justify-between px-6 h-16 border-b border-lightborder/50 flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blueaccent/10 flex items-center justify-center">
+                <i class="fa-solid fa-clock-rotate-left text-blueaccent text-sm"></i>
+            </div>
+            <div>
+                <span class="text-sm font-semibold text-charcoal" id="drawerId">HS-1024</span>
+                <span class="text-[10px] text-coolgrey/40 block" id="drawerDate">Aug 14, 2026 · 1:42 PM</span>
+            </div>
+        </div>
+        <button onclick="closeDrawer()" class="w-8 h-8 rounded-lg hover:bg-softgrey flex items-center justify-center transition-colors">
+            <i class="fa-solid fa-xmark text-coolgrey text-sm"></i>
+        </button>
+    </div>
+    <div class="flex-1 overflow-y-auto px-6 py-5" id="drawerContent"></div>
+    <div class="px-6 py-4 border-t border-lightborder/50 flex-shrink-0 flex items-center justify-between">
+        <span id="drawerStatusBadge" class="risk-badge inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"></span>
+        <button onclick="closeDrawer()" class="btn-ghost text-sm text-coolgrey px-4 py-2 rounded-lg">Close</button>
+    </div>
+</div>
+
+
+
+<script>
+
+// ============================================================
+// INCIDENT MANAGEMENT - CLEAN FINAL JS
+// ============================================================
+
+let incidents = [];
+
+
+// ============================================================
+// 1. LOAD INCIDENTS FROM SUPABASE
+// ============================================================
+
+async function loadIncidentsFromSupabase() {
+
+    try {
+
+        const {
+            data: { user },
+            error: userError
+        } = await supabaseClient.auth.getUser();
+
+        if (userError) {
+            console.error('❌ AUTH ERROR:', userError);
+            return [];
+        }
+
+        if (!user) {
+            console.error('❌ NO LOGGED-IN USER');
+            return [];
+        }
+
+        console.log('👤 CURRENT USER ID:', user.id);
+
+        const { data, error } = await supabaseClient
+            .from('incidents')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('incident_date', {
+                ascending: false
+            });
+
+        if (error) {
+            console.error('❌ FAILED TO LOAD INCIDENTS:', error);
+            return [];
+        }
+
+        console.log('🚨 INCIDENTS FROM SUPABASE:', data);
+
+        return data || [];
+
+    } catch (err) {
+
+        console.error('❌ LOAD INCIDENTS ERROR:', err);
+        return [];
+
+    }
+}
+
+
+// ============================================================
+// 2. MAP SUPABASE DATA TO UI DATA
+// ============================================================
+
+function mapSupabaseIncident(row) {
+
+    return {
+
+        id: row.incident_id || row.id,
+
+        date: row.incident_date
+            ? new Date(row.incident_date).toLocaleDateString(
+                'en-US',
+                {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                }
+            )
+            : '',
+
+        time: row.incident_date
+            ? new Date(row.incident_date).toLocaleTimeString(
+                'en-US',
+                {
+                    hour: 'numeric',
+                    minute: '2-digit'
+                }
+            )
+            : '',
+
+        dateFull: row.incident_date
+            ? new Date(row.incident_date).toLocaleString(
+                'en-US',
+                {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                }
+            )
+            : '',
+
+        site: row.site || '',
+
+        type: row.incident_type || '',
+
+        typeFull: row.incident_type || '',
+
+        risk: row.risk_level || 'Low',
+
+        action: row.action_taken || '',
+
+        actionFull: row.action_taken || '',
+
+        status: row.status || 'Open',
+
+        worker: row.affected_team || '',
+
+        temperature: row.temperature || '',
+
+        heatIndex: row.heat_index || '',
+
+        exposureDuration: row.exposure_duration || '',
+
+        symptoms: row.symptoms || '',
+
+        recommended: row.recommended_action || '',
+
+        supervisor: row.supervisor_response || '',
+
+        resolutionTime: row.resolution_time || '',
+
+        notes: row.notes || '',
+
+        timeline: []
+
+    };
+}
+
+
+// ============================================================
+// 3. RISK CONFIG
+// ============================================================
+
+const riskConfig = {
+
+    Low: {
+        bg: 'bg-emerald-50',
+        text: 'text-emerald-700',
+        border: 'border-emerald-200/60',
+        dot: 'bg-emerald-400'
+    },
+
+    Medium: {
+        bg: 'bg-amber-50',
+        text: 'text-amber-700',
+        border: 'border-amber-200/60',
+        dot: 'bg-amber-400'
+    },
+
+    High: {
+        bg: 'bg-orange-50',
+        text: 'text-orange-700',
+        border: 'border-orange-200/60',
+        dot: 'bg-orange-400'
+    },
+
+    Critical: {
+        bg: 'bg-red-50',
+        text: 'text-red-600',
+        border: 'border-red-200/60',
+        dot: 'bg-red-400'
+    }
+
+};
+
+
+// ============================================================
+// 4. STATUS CONFIG
+// ============================================================
+
+const statusConfig = {
+
+    Resolved: {
+        bg: 'bg-emerald-50',
+        text: 'text-emerald-700',
+        dot: 'bg-emerald-400'
+    },
+
+    Monitoring: {
+        bg: 'bg-amber-50',
+        text: 'text-amber-700',
+        dot: 'bg-amber-400',
+        pulse: true
+    },
+
+    Open: {
+        bg: 'bg-blue-50',
+        text: 'text-blue-700',
+        dot: 'bg-blue-400',
+        pulse: true
+    }
+
+};
+
+
+// ============================================================
+// 5. RISK BADGE
+// ============================================================
+
+function riskBadge(level) {
+
+    const c = riskConfig[level] || riskConfig.Low;
+
+    return `
+        <span class="risk-badge inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${c.bg} ${c.text} border ${c.border}">
+            <span class="w-1.5 h-1.5 rounded-full ${c.dot}"></span>
+            ${level}
+        </span>
+    `;
+
+}
+
+
+// ============================================================
+// 6. STATUS BADGE
+// ============================================================
+
+function statusBadge(status) {
+
+    const c = statusConfig[status] || statusConfig.Open;
+
+    return `
+        <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${c.bg} ${c.text}">
+            <span class="w-1.5 h-1.5 rounded-full ${c.dot} ${c.pulse ? 'status-pulse' : ''}"></span>
+            ${status}
+        </span>
+    `;
+
+}
+
+
+// ============================================================
+// 7. DESKTOP TABLE ROW
+// ============================================================
+
+function renderDesktopRow(inc) {
+
+    return `
+        <tr
+            class="table-row border-b border-lightborder/30"
+            onclick="openDrawer('${inc.id}')"
+        >
+
+            <td class="pl-5 pr-4 py-3.5 text-sm font-semibold text-blueaccent">
+                ${inc.id}
+            </td>
+
+            <td class="px-4 py-3.5">
+                <div class="text-sm text-charcoal">
+                    ${inc.date}
+                </div>
+
+                <div class="text-[11px] text-coolgrey/50">
+                    ${inc.time}
+                </div>
+            </td>
+
+            <td class="px-4 py-3.5 text-sm text-charcoal/80">
+                ${inc.site}
+            </td>
+
+            <td class="px-4 py-3.5 text-sm text-charcoal/80">
+                ${inc.type}
+            </td>
+
+            <td class="px-4 py-3.5">
+                ${riskBadge(inc.risk)}
+            </td>
+
+            <td class="px-4 py-3.5 text-sm text-coolgrey max-w-[200px] truncate">
+                ${inc.action}
+            </td>
+
+            <td class="px-4 py-3.5">
+                ${statusBadge(inc.status)}
+            </td>
+
+            <td class="pr-5 pl-4 py-3.5 text-right">
+
+                <button
+                    class="view-btn text-xs font-medium text-blueaccent px-2.5 py-1.5 rounded-md inline-flex items-center"
+                    onclick="event.stopPropagation(); openDrawer('${inc.id}')"
+                >
+                    View
+                    <i class="fa-solid fa-arrow-right text-[9px] view-arrow"></i>
+                </button>
+
+            </td>
+
+        </tr>
+    `;
+
+}
+
+
+// ============================================================
+// 8. MOBILE CARD
+// ============================================================
+
+function renderMobileCard(inc) {
+
+    return `
+        <div
+            class="p-4 table-row"
+            onclick="openDrawer('${inc.id}')"
+        >
+
+            <div class="flex items-center justify-between mb-2">
+
+                <span class="text-sm font-semibold text-blueaccent">
+                    ${inc.id}
+                </span>
+
+                ${riskBadge(inc.risk)}
+
+            </div>
+
+            <div class="text-sm font-medium text-charcoal mb-0.5">
+                ${inc.type}
+            </div>
+
+            <div class="text-xs text-coolgrey/60 mb-2">
+                ${inc.site} · ${inc.date} · ${inc.time}
+            </div>
+
+            <div class="flex items-center justify-between">
+
+                <span class="text-xs text-coolgrey truncate max-w-[60%]">
+                    ${inc.action}
+                </span>
+
+                ${statusBadge(inc.status)}
+
+            </div>
+
+        </div>
+    `;
+
+}
+
+
+// ============================================================
+// 9. UPDATE SUMMARY CARDS
+// ============================================================
+
+function updateSummaryCards() {
+
+    console.log('📊 SUMMARY INCIDENTS:', incidents);
+
+    const total = incidents.length;
+
+    const highRisk = incidents.filter(
+        incident =>
+            incident.risk === 'High' ||
+            incident.risk === 'Critical'
+    ).length;
+
+    const openMonitoring = incidents.filter(
+        incident =>
+            incident.status === 'Open' ||
+            incident.status === 'Monitoring'
+    ).length;
+
+    const resolved = incidents.filter(
+        incident =>
+            incident.status === 'Resolved'
+    ).length;
+
+
+    const totalEl =
+        document.getElementById('totalIncidents');
+
+    const highRiskEl =
+        document.getElementById('highRiskIncidents');
+
+    const openMonitoringEl =
+        document.getElementById('openMonitoringIncidents');
+
+    const resolvedEl =
+        document.getElementById('resolvedIncidents');
+
+
+    if (totalEl) {
+        totalEl.textContent = total;
+    }
+
+    if (highRiskEl) {
+        highRiskEl.textContent = highRisk;
+    }
+
+    if (openMonitoringEl) {
+        openMonitoringEl.textContent = openMonitoring;
+    }
+
+    if (resolvedEl) {
+        resolvedEl.textContent = resolved;
+    }
+
+
+    console.log('📊 SUMMARY UPDATED:', {
+        total,
+        highRisk,
+        openMonitoring,
+        resolved
+    });
+
+}
+
+
+// ============================================================
+// 10. RENDER TABLE
+// ============================================================
+
+function renderTable(data) {
+
+    const tbody =
+        document.getElementById('tableBody');
+
+    const mobile =
+        document.getElementById('mobileCards');
+
+    const empty =
+        document.getElementById('emptyState');
+
+    const count =
+        document.getElementById('resultCount');
+
+
+    console.log('🖥️ RENDER TABLE DATA:', data);
+
+
+    if (!data || data.length === 0) {
+
+        if (tbody) {
+            tbody.innerHTML = '';
+        }
+
+        if (mobile) {
+            mobile.innerHTML = '';
+        }
+
+        if (empty) {
+            empty.classList.remove('hidden');
+        }
+
+        if (count) {
+            count.textContent = 'No incidents found';
+        }
+
+        return;
+    }
+
+
+    if (empty) {
+        empty.classList.add('hidden');
+    }
+
+
+    if (tbody) {
+        tbody.innerHTML =
+            data.map(renderDesktopRow).join('');
+    }
+
+
+    if (mobile) {
+        mobile.innerHTML =
+            data.map(renderMobileCard).join('');
+    }
+
+
+    if (count) {
+
+        count.textContent =
+            `Showing ${data.length} incident${data.length !== 1 ? 's' : ''}`;
+
+    }
+
+}
+
+
+// ============================================================
+// 11. FILTER
+// ============================================================
+
+function filterTable() {
+
+    const searchEl =
+        document.getElementById('searchInput');
+
+    const riskEl =
+        document.getElementById('filterRisk');
+
+    const locationEl =
+        document.getElementById('filterLocation');
+
+    const statusEl =
+        document.getElementById('filterStatus');
+
+
+    const s =
+        searchEl
+            ? searchEl.value.toLowerCase()
+            : '';
+
+    const r =
+        riskEl
+            ? riskEl.value
+            : 'all';
+
+    const l =
+        locationEl
+            ? locationEl.value
+            : 'all';
+
+    const st =
+        statusEl
+            ? statusEl.value
+            : 'all';
+
+
+    const filtered =
+        incidents.filter(i => {
+
+            const matchesSearch =
+                !s ||
+                String(i.id).toLowerCase().includes(s) ||
+                String(i.type).toLowerCase().includes(s) ||
+                String(i.site).toLowerCase().includes(s) ||
+                String(i.action).toLowerCase().includes(s);
+
+
+            const matchesRisk =
+                r === 'all' ||
+                i.risk === r;
+
+
+            const matchesLocation =
+                l === 'all' ||
+                i.site === l;
+
+
+            const matchesStatus =
+                st === 'all' ||
+                i.status === st;
+
+
+            return (
+                matchesSearch &&
+                matchesRisk &&
+                matchesLocation &&
+                matchesStatus
+            );
+
+        });
+
+
+    console.log('🔎 FILTERED INCIDENTS:', filtered);
+
+    renderTable(filtered);
+
+}
+
+
+// ============================================================
+// 12. RESET FILTERS
+// ============================================================
+
+function resetFilters() {
+
+    const search =
+        document.getElementById('searchInput');
+
+    const date =
+        document.getElementById('filterDate');
+
+    const risk =
+        document.getElementById('filterRisk');
+
+    const location =
+        document.getElementById('filterLocation');
+
+    const status =
+        document.getElementById('filterStatus');
+
+
+    if (search) search.value = '';
+
+    if (date) date.value = 'all';
+
+    if (risk) risk.value = 'all';
+
+    if (location) location.value = 'all';
+
+    if (status) status.value = 'all';
+
+
+    renderTable(incidents);
+
+}
+
+
+// ============================================================
+// 13. DRAWER
+// ============================================================
+
+function openDrawer(id) {
+
+    const inc =
+        incidents.find(
+            i => String(i.id) === String(id)
+        );
+
+
+    if (!inc) {
+
+        console.error(
+            '❌ INCIDENT NOT FOUND:',
+            id
+        );
+
+        return;
+    }
+
+
+    const drawerId =
+        document.getElementById('drawerId');
+
+    const drawerDate =
+        document.getElementById('drawerDate');
+
+    const drawerStatusBadge =
+        document.getElementById('drawerStatusBadge');
+
+    const drawerContent =
+        document.getElementById('drawerContent');
+
+
+    if (drawerId) {
+        drawerId.textContent = inc.id;
+    }
+
+
+    if (drawerDate) {
+        drawerDate.textContent = inc.dateFull;
+    }
+
+
+    const sc =
+        statusConfig[inc.status] ||
+        statusConfig.Open;
+
+
+    if (drawerStatusBadge) {
+
+        drawerStatusBadge.className =
+            `risk-badge inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${sc.bg} ${sc.text}`;
+
+        drawerStatusBadge.innerHTML = `
+            <span class="w-1.5 h-1.5 rounded-full ${sc.dot} ${sc.pulse ? 'status-pulse' : ''}"></span>
+            ${inc.status}
+        `;
+
+    }
+
+
+    const field =
+        (label, value, icon) => {
+
+            return `
+                <div class="flex items-start gap-3 py-2.5 border-b border-lightborder/30 last:border-0">
+
+                    <div class="w-7 h-7 rounded-md bg-softgrey flex items-center justify-center flex-shrink-0 mt-0.5">
+
+                        <i class="fa-solid fa-${icon} text-coolgrey/35 text-[11px]"></i>
+
+                    </div>
+
+                    <div class="min-w-0">
+
+                        <div class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-0.5">
+                            ${label}
+                        </div>
+
+                        <div class="text-sm text-charcoal leading-relaxed">
+                            ${value || '-'}
+                        </div>
+
+                    </div>
+
+                </div>
+            `;
+
+        };
+
+
+    let timelineHTML = '';
+
+
+    if (
+        inc.timeline &&
+        inc.timeline.length
+    ) {
+
+        const items =
+            inc.timeline.map(
+                (t, i) => {
+
+                    const isLast =
+                        i === inc.timeline.length - 1;
+
+
+                    return `
+                        <div class="flex gap-3 ${isLast ? '' : 'pb-5'}">
+
+                            <div class="flex flex-col items-center">
+
+                                <div class="timeline-dot ${t.color}"></div>
+
+                                ${
+                                    isLast
+                                        ? ''
+                                        : '<div class="flex-1 w-px bg-lightborder mt-1"></div>'
+                                }
+
+                            </div>
+
+                            <div class="pt-0.5 -mt-0.5">
+
+                                <div class="text-[11px] font-semibold text-coolgrey/50">
+                                    ${t.time}
+                                </div>
+
+                                <div class="text-sm text-charcoal leading-snug">
+                                    ${t.event}
+                                </div>
+
+                            </div>
+
+                        </div>
+                    `;
+
+                }
+            ).join('');
+
+
+        timelineHTML = `
+            <div class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-3 mt-6">
+                Incident Timeline
+            </div>
+
+            <div class="bg-softgrey/40 rounded-xl p-4 relative">
+                ${items}
+            </div>
+        `;
+
+    }
+
+
+    if (drawerContent) {
+
+        drawerContent.innerHTML = `
+
+            <div class="mb-5 flex items-center gap-2">
+                ${riskBadge(inc.risk)}
+            </div>
+
+
+            <div class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-2">
+                Incident Details
+            </div>
+
+
+            <div class="bg-softgrey/40 rounded-xl p-1 mb-4">
+
+                ${field(
+                    'Site / Location',
+                    inc.site,
+                    'location-dot'
+                )}
+
+                ${field(
+                    'Incident Type',
+                    inc.typeFull,
+                    'circle-exclamation'
+                )}
+
+                ${field(
+                    'Affected Team',
+                    inc.worker,
+                    'people-group'
+                )}
+
+                ${field(
+                    'Temperature / WBGT',
+                    inc.temperature,
+                    'temperature-half'
+                )}
+
+                ${field(
+                    'Heat Index',
+                    inc.heatIndex,
+                    'sun'
+                )}
+
+                ${field(
+                    'Exposure Duration',
+                    inc.exposureDuration,
+                    'hourglass-half'
+                )}
+
+            </div>
+
+
+            <div class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-2">
+                Response
+            </div>
+
+
+            <div class="bg-softgrey/40 rounded-xl p-1 mb-4">
+
+                ${field(
+                    'Symptoms / Description',
+                    inc.symptoms,
+                    'heart-pulse'
+                )}
+
+                ${field(
+                    'Recommended Action',
+                    inc.recommended,
+                    'lightbulb'
+                )}
+
+                ${field(
+                    'Action Taken',
+                    inc.actionFull,
+                    'circle-check'
+                )}
+
+                ${field(
+                    'Supervisor Response',
+                    inc.supervisor,
+                    'user-check'
+                )}
+
+                ${field(
+                    'Resolution Time',
+                    inc.resolutionTime,
+                    'stopwatch'
+                )}
+
+            </div>
+
+
+            ${timelineHTML}
+
+
+            <div class="text-[10px] font-semibold text-coolgrey/40 uppercase tracking-widest mb-2 mt-6">
+                Notes
+            </div>
+
+            <div class="text-sm text-coolgrey leading-relaxed bg-softgrey/40 rounded-xl p-3">
+                ${inc.notes || '-'}
+            </div>
+
+        `;
+
+    }
+
+
+    const overlay =
+        document.getElementById('drawerOverlay');
+
+
+    if (overlay) {
+        overlay.classList.add('open');
+    }
+
+
+    document.body.style.overflow = 'hidden';
+
+}
+
+
+// ============================================================
+// 14. CLOSE DRAWER
+// ============================================================
+
+function closeDrawer() {
+
+    const overlay =
+        document.getElementById('drawerOverlay');
+
+
+    if (overlay) {
+        overlay.classList.remove('open');
+    }
+
+
+    document.body.style.overflow = '';
+
+}
+
+
+// ============================================================
+// 15. MOBILE SIDEBAR
+// ============================================================
+
+const mobileToggle =
+    document.getElementById('mobileToggle');
+
+const sidebar =
+    document.getElementById('sidebar');
+
+const sidebarOverlay =
+    document.getElementById('sidebarOverlay');
+
+
+if (mobileToggle) {
+
+    mobileToggle.addEventListener(
+        'click',
+        () => {
+
+            if (sidebar) {
+                sidebar.classList.add('open');
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.add('show');
+            }
+
+        }
+    );
+
+}
+
+
+if (sidebarOverlay) {
+
+    sidebarOverlay.addEventListener(
+        'click',
+        () => {
+
+            if (sidebar) {
+                sidebar.classList.remove('open');
+            }
+
+            sidebarOverlay.classList.remove('show');
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// 16. ESC KEY
+// ============================================================
+
+document.addEventListener(
+    'keydown',
+    e => {
+
+        if (e.key === 'Escape') {
+            closeDrawer();
+        }
+
+    }
+);
+
+
+// ============================================================
+// 17. INITIALIZE INCIDENTS
+// ============================================================
+
+async function initIncidents() {
+
+    console.log('🚀 INIT INCIDENTS STARTED');
+
+
+    const supabaseIncidents =
+        await loadIncidentsFromSupabase();
+
+
+    console.log(
+        '📦 SUPABASE DATA:',
+        supabaseIncidents
+    );
+
+
+    // IMPORTANT:
+    // Always replace current incidents with Supabase data.
+    incidents.length = 0;
+
+
+    incidents.push(
+        ...supabaseIncidents.map(
+            mapSupabaseIncident
+        )
+    );
+
+
+    console.log(
+        '📊 INCIDENTS AFTER MAPPING:',
+        incidents
+    );
+
+
+    updateSummaryCards();
+
+    renderTable(incidents);
+
+
+    console.log(
+        '✅ INCIDENT PAGE READY:',
+        incidents.length
+    );
+
+}
+
+
+// ============================================================
+// 18. REALTIME
+// ============================================================
+
+function subscribeToIncidentChanges() {
+
+    const channel =
+        supabaseClient
+            .channel('incidents-realtime')
+
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'incidents'
+                },
+
+                async payload => {
+
+                    console.log(
+                        '🔴 INCIDENT REALTIME CHANGE:',
+                        payload
+                    );
+
+
+                    const updatedIncidents =
+                        await loadIncidentsFromSupabase();
+
+
+                    incidents.length = 0;
+
+
+                    incidents.push(
+                        ...updatedIncidents.map(
+                            mapSupabaseIncident
+                        )
+                    );
+
+
+                    console.log(
+                        '🔄 INCIDENTS AFTER REALTIME:',
+                        incidents
+                    );
+
+
+                    updateSummaryCards();
+
+                    renderTable(incidents);
+
+                }
+            )
+
+            .subscribe(
+                status => {
+
+                    console.log(
+                        '📡 INCIDENT REALTIME STATUS:',
+                        status
+                    );
+
+                }
+            );
+
+
+    return channel;
+
+}
+
+
+// ============================================================
+// 19. START EVERYTHING - ONLY ONCE
+// ============================================================
+
+(async function startIncidentPage() {
+
+    await initIncidents();
+
+    subscribeToIncidentChanges();
+
+})();
+
+
+// ============================================================
+// END
+// ============================================================
+
+</script>
+</body>
+</html>

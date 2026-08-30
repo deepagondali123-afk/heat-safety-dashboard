@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Safety Actions · HeatShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#F8FAFC;
+  --surface:#FFFFFF;
+  --surface-2:#F1F5F9;
+  --border:#E2E8F0;
+  --border-strong:#CBD5E1;
+  --text-1:#0F172A;
+  --text-2:#475569;
+  --text-3:#94A3B8;
+  --text-4:#CBD5E1;
+  --sidebar:#ECE9F8;
+  --sidebar-border:#D9D3EF;
+  --sidebar-active:#FFFFFF;
+  --sidebar-text:#5B4B8A;
+  --sidebar-text-muted:#8579B0;
+  --sidebar-hover-bg:rgba(124,58,237,0.08);
+  --sidebar-hover-text:#2D1B5E;
+  --sidebar-ai:#7C3AED;
+  --primary:#2563EB;
+  --primary-50:#FFF7ED;
+  --primary-100:#FFEDD5;
+  --primary-200:#FED7AA;
+  --primary-600:#EA580C;
+  --critical:#EF4444;
+  --critical-bg:#FEF2F2;
+  --critical-border:#FECACA;
+  --high:#F97316;
+  --high-bg:#FFF7ED;
+  --high-border:#FED7AA;
+  --moderate:#FACC15;
+  --moderate-bg:#FEFCE8;
+  --moderate-border:#FDE68A;
+  --safe:#22C55E;
+  --safe-bg:#F0FDF4;
+  --safe-border:#BBF7D0;
+  --ai:#F97316;
+  --ai-bg:#FFF7ED;
+  --ai-border:#FED7AA;
+  --warning:#FACC15;
+  --warning-bg:#FEFCE8;
+  --warning-border:#FDE68A;
+  --navy:#0F172A;
+  --shadow-sm:0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.06);
+  --shadow-md:0 4px 6px -1px rgba(15,23,42,0.06), 0 2px 4px -2px rgba(15,23,42,0.04);
+  --shadow-lg:0 10px 25px -5px rgba(15,23,42,0.08), 0 8px 10px -6px rgba(15,23,42,0.04);
+  --shadow-xl:0 20px 40px -12px rgba(15,23,42,0.15);
+  --radius-sm:8px;
+  --radius-md:12px;
+  --radius-lg:16px;
+  --radius-xl:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);
+  color:var(--text-1);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;
+  width:260px;
+  background:var(--sidebar);
+  border-right:1px solid var(--sidebar-border);
+  display:flex;flex-direction:column;
+  z-index:40;
+  transition:transform 0.3s ease;
+}
+.sidebar-brand{
+  padding:24px 22px 20px;
+  display:flex;align-items:center;gap:12px;
+}
+.brand-mark{
+  width:38px;height:38px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#2563EB 0%,#2563EB 100%);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:17px;
+  box-shadow:0 4px 12px rgba(249,115,22,0.35);
+  position:relative;
+}
+.brand-mark::after{
+  content:"";position:absolute;inset:0;border-radius:10px;
+  background:radial-gradient(circle at 30% 25%,rgba(255,255,255,0.35),transparent 55%);
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;}
+.brand-name{font-weight:800;font-size:15px;letter-spacing:0.08em;color:var(--navy);}
+.brand-tag{font-size:10px;color:var(--sidebar-text-muted);font-weight:500;letter-spacing:0.04em;margin-top:2px;}
+.sidebar-section{padding:8px 14px 4px;margin-top:8px;}
+.sidebar-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--sidebar-text-muted);padding:0 10px 6px;}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:10px;
+  color:var(--sidebar-text);font-size:13.5px;font-weight:500;
+  text-decoration:none;margin:2px 6px;
+  transition:background 0.18s ease, color 0.18s ease;
+  position:relative;
+}
+.nav-item i{width:18px;font-size:14px;text-align:center;color:var(--sidebar-text-muted);transition:color 0.18s ease;}
+.nav-item:hover{background:var(--sidebar-hover-bg);color:var(--sidebar-hover-text);}
+.nav-item:hover i{color:var(--sidebar-ai);}
+.nav-item.active{background:var(--sidebar-active);color:var(--sidebar-hover-text);font-weight:600;box-shadow:0 2px 8px rgba(15,23,42,0.06);}
+.nav-item.active i{color:var(--primary);}
+.nav-item.active::before{
+  content:"";position:absolute;left:-6px;top:8px;bottom:8px;
+  width:3px;border-radius:0 3px 3px 0;background:var(--primary);
+}
+.sidebar-footer{margin-top:auto;padding:14px;}
+.user-card{
+  background:var(--surface-2);border:1px solid var(--border);
+  border-radius:14px;padding:12px;
+  display:flex;align-items:center;gap:11px;
+}
+.user-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,#2563EB,#2563EB);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:13px;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(249,115,22,0.3);
+}
+.user-info{flex:1;min-width:0;}
+.user-name{font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-role{font-size:11px;color:var(--text-3);font-weight:500;}
+
+/* ============ MAIN ============ */
+.main{margin-left:260px;min-height:100vh;position:relative;z-index:1;}
+.container{max-width:1320px;margin:0 auto;padding:28px 32px 60px;}
+
+/* HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:28px;flex-wrap:wrap;}
+.page-title{font-size:26px;font-weight:800;letter-spacing:-0.02em;color:var(--navy);line-height:1.15;}
+.page-subtitle{font-size:13.5px;color:var(--text-2);margin-top:5px;max-width:640px;}
+.header-right{display:flex;align-items:center;gap:14px;}
+.status-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 13px 7px 11px;background:#fff;
+  border:1px solid var(--border);border-radius:999px;
+  font-size:12px;font-weight:600;color:var(--text-2);box-shadow:var(--shadow-sm);
+}
+.status-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--safe);position:relative;
+  box-shadow:0 0 0 0 rgba(34,197,94,0.5);animation:statusPulse 2.4s ease-out infinite;
+}
+@keyframes statusPulse{
+  0%{box-shadow:0 0 0 0 rgba(34,197,94,0.55);}
+  70%{box-shadow:0 0 0 8px rgba(34,197,94,0);}
+  100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}
+}
+.icon-btn{
+  width:38px;height:38px;border-radius:10px;background:#fff;
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);cursor:pointer;position:relative;
+  transition:all 0.18s ease;box-shadow:var(--shadow-sm);
+}
+.icon-btn:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px);box-shadow:var(--shadow-md);}
+.icon-btn .notif-badge{
+  position:absolute;top:-3px;right:-3px;width:16px;height:16px;
+  background:var(--critical);color:#fff;font-size:9px;font-weight:700;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;
+}
+.header-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,#2563EB,#2563EB);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:600;font-size:13px;
+  border:2px solid #fff;box-shadow:var(--shadow-md);cursor:pointer;
+}
+
+/* SECTIONS */
+.section{margin-bottom:24px;}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+.section-title{
+  font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--text-3);display:flex;align-items:center;gap:8px;
+}
+.section-title::before{content:"";width:3px;height:14px;background:var(--primary);border-radius:2px;}
+.context-line{font-size:12.5px;color:var(--text-2);display:flex;align-items:center;gap:6px;}
+.context-line i{color:var(--primary);font-size:12px;}
+
+/* ============ CRITICAL ACTION BANNER ============ */
+.critical-banner{
+  background:var(--surface);border:2px solid var(--critical);border-radius:var(--radius-lg);
+  box-shadow:0 0 0 1px rgba(239,68,68,0.08), var(--shadow-md);
+  overflow:hidden;position:relative;
+}
+.critical-banner::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--critical);
+}
+.critical-banner-inner{padding:24px 24px 24px 28px;display:flex;gap:20px;align-items:flex-start;}
+.critical-icon-wrap{
+  width:48px;height:48px;border-radius:14px;background:var(--critical-bg);
+  border:1px solid var(--critical-border);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:20px;color:var(--critical);
+  animation:criticalPulse 2s ease-in-out infinite;
+}
+@keyframes criticalPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.15);}
+  50%{box-shadow:0 0 0 8px rgba(239,68,68,0);}
+}
+.critical-content{flex:1;min-width:0;}
+.critical-eyebrow{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--critical);display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.critical-eyebrow i{font-size:10px;}
+.critical-title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
+.critical-zone{font-size:20px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;}
+.critical-action{font-size:15px;font-weight:700;color:var(--text-1);margin-bottom:10px;}
+.critical-factors{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px;}
+.critical-factor{display:flex;flex-direction:column;gap:1px;}
+.critical-factor-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);}
+.critical-factor-value{font-size:15px;font-weight:800;color:var(--navy);}
+.critical-factor-value.danger{color:var(--critical);}
+.critical-meta{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:16px;font-size:12.5px;color:var(--text-2);}
+.critical-meta strong{color:var(--navy);font-weight:700;}
+.critical-score{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:999px;
+  background:var(--critical-bg);border:1px solid var(--critical-border);
+  font-size:12px;font-weight:800;color:var(--critical);
+}
+.critical-actions-row{display:flex;gap:10px;flex-wrap:wrap;}
+.btn{
+  padding:10px 18px;border-radius:10px;font-family:inherit;
+  font-size:13px;font-weight:700;cursor:pointer;border:1px solid transparent;
+  transition:all 0.18s ease;display:inline-flex;align-items:center;gap:8px;
+  letter-spacing:0.02em;
+}
+.btn-primary{background:var(--critical);color:#fff;box-shadow:0 4px 12px rgba(239,68,68,0.25);}
+.btn-primary:hover{background:#DC2626;transform:translateY(-1px);box-shadow:0 6px 16px rgba(239,68,68,0.32);}
+.btn-ghost{background:var(--surface-2);color:var(--text-2);border-color:var(--border);}
+.btn-ghost:hover{background:var(--surface);border-color:var(--border-strong);color:var(--navy);}
+.btn-safe{background:var(--safe);color:#fff;box-shadow:0 4px 12px rgba(34,197,94,0.25);}
+.btn-safe:hover{background:#16A34A;transform:translateY(-1px);box-shadow:0 6px 16px rgba(34,197,94,0.32);}
+.btn-safe:disabled{background:var(--text-4);box-shadow:none;cursor:not-allowed;transform:none;}
+
+/* AI REASONING PANEL */
+.ai-reasoning{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.3s ease, opacity 0.3s ease;
+  opacity:0;padding:0 28px;
+  background:linear-gradient(180deg,#FEF2F2 0%,var(--surface) 100%);
+  border-top:1px solid transparent;
+}
+.ai-reasoning.open{max-height:400px;opacity:1;padding:20px 28px;border-top:1px solid var(--critical-border);}
+.ai-reasoning-head{
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--critical);display:flex;align-items:center;gap:8px;margin-bottom:12px;
+}
+.ai-reasoning-head i{font-size:13px;}
+.ai-reasoning-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.ai-reasoning-item{padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:10px;}
+.ai-reasoning-item-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-3);}
+.ai-reasoning-item-value{font-size:14px;font-weight:700;color:var(--navy);margin-top:2px;}
+.ai-reasoning-item-value.danger{color:var(--critical);}
+.ai-reasoning-explain{
+  padding:14px 18px;background:#fff;border:1px solid var(--border);border-radius:12px;
+  font-size:13px;color:var(--text-2);line-height:1.6;
+}
+.ai-reasoning-explain strong{color:var(--navy);}
+.ai-reasoning-score{
+  display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+  padding:6px 14px;border-radius:999px;
+  background:var(--critical-bg);border:1px solid var(--critical-border);
+  font-size:13px;font-weight:800;color:var(--critical);
+}
+
+/* ============ METRICS ============ */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.metric-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:18px 20px;position:relative;overflow:hidden;
+  transition:transform 0.22s ease, box-shadow 0.22s ease;
+}
+.metric-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.metric-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary);}
+.metric-card.completed::before{background:var(--safe);}
+.metric-card.pending::before{background:var(--warning);}
+.metric-card.overdue::before{background:var(--critical);}
+.metric-card::after{
+  content:"";position:absolute;right:-25px;top:-25px;width:90px;height:90px;
+  background:radial-gradient(circle,var(--primary-50),transparent 70%);opacity:0.6;pointer-events:none;
+}
+.metric-card.completed::after{background:radial-gradient(circle,var(--safe-bg),transparent 70%);}
+.metric-card.pending::after{background:radial-gradient(circle,var(--warning-bg),transparent 70%);}
+.metric-card.overdue::after{background:radial-gradient(circle,var(--critical-bg),transparent 70%);}
+.metric-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.metric-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);}
+.metric-icon{
+  width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;background:var(--primary-50);color:var(--primary);border:1px solid var(--primary-100);
+}
+.metric-card.completed .metric-icon{background:var(--safe-bg);color:var(--safe);border-color:var(--safe-border);}
+.metric-card.pending .metric-icon{background:var(--warning-bg);color:#CA8A04;border-color:var(--warning-border);}
+.metric-card.overdue .metric-icon{background:var(--critical-bg);color:var(--critical);border-color:var(--critical-border);}
+.metric-value{font-size:34px;font-weight:800;color:var(--navy);line-height:1;letter-spacing:-0.02em;}
+.metric-card.completed .metric-value{color:var(--safe);}
+.metric-card.pending .metric-value{color:#CA8A04;}
+.metric-card.overdue .metric-value{color:var(--critical);}
+.metric-sub{font-size:11px;color:var(--text-3);margin-top:4px;font-weight:500;}
+
+/* ============ FILTER BAR ============ */
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.filter-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);margin-right:4px;}
+.filter-btn{
+  padding:8px 16px;border-radius:999px;font-family:inherit;font-size:12.5px;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-2);
+  transition:all 0.2s ease;display:flex;align-items:center;gap:7px;
+}
+.filter-btn:hover{border-color:var(--primary-100);color:var(--primary);background:var(--primary-50);}
+.filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 3px 10px rgba(249,115,22,0.22);}
+.filter-btn .filter-count{
+  font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:999px;
+  background:var(--surface-2);color:var(--text-3);min-width:18px;text-align:center;
+}
+.filter-btn.active .filter-count{background:rgba(255,255,255,0.25);color:#fff;}
+
+/* ============ ACTION TABLE ============ */
+.action-table-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;
+}
+.table-head-bar{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+.table-title{font-size:16px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;}
+.table-subtitle{font-size:12.5px;color:var(--text-3);margin-top:2px;}
+.table-wrap{overflow-x:auto;}
+.action-table{width:100%;border-collapse:collapse;min-width:820px;}
+.action-table thead th{
+  text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.08em;color:var(--text-3);padding:14px 20px;
+  background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.action-table tbody tr{
+  border-bottom:1px solid var(--border);cursor:pointer;
+  transition:background 0.18s ease, box-shadow 0.18s ease;
+}
+.action-table tbody tr:last-child{border-bottom:none;}
+.action-table tbody tr:hover{background:var(--primary-50);box-shadow:inset 3px 0 0 var(--primary);}
+.action-table td{padding:14px 20px;font-size:13px;color:var(--text-1);vertical-align:middle;}
+.time-cell{font-weight:600;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.zone-cell{font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.zone-dot-sm{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.zone-dot-sm.critical{background:var(--critical);}
+.zone-dot-sm.high{background:var(--primary);}
+.risk-badge{
+  display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.04em;padding:3px 10px;border-radius:999px;
+}
+.risk-badge.critical{background:var(--critical-bg);color:var(--critical);border:1px solid var(--critical-border);}
+.risk-badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high-border);}
+.action-text-cell{font-weight:600;color:var(--navy);white-space:nowrap;}
+.owner-cell{font-weight:500;color:var(--text-2);white-space:nowrap;}
+.owner-cell i{font-size:10px;color:var(--text-3);margin-right:4px;}
+.chevron-cell{text-align:right;color:var(--text-4);font-size:13px;transition:transform 0.2s ease, color 0.2s ease;}
+.action-table tbody tr:hover .chevron-cell{color:var(--primary);transform:translateX(3px);}
+
+/* STATUS BADGES */
+.status-badge{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em;padding:4px 10px;border-radius:999px;border:1px solid;
+}
+.status-badge i{font-size:10px;}
+.status-badge.verified{background:var(--safe-bg);color:var(--safe);border-color:var(--safe-border);}
+.status-badge.completed{background:var(--safe-bg);color:var(--safe);border-color:var(--safe-border);}
+.status-badge.pending{background:var(--warning-bg);color:#CA8A04;border-color:var(--warning-border);}
+.status-badge.overdue{background:var(--critical-bg);color:var(--critical);border-color:var(--critical-border);animation:overduePulse 2.5s ease-in-out infinite;}
+.status-badge.in-progress{background:var(--primary-50);color:var(--primary);border-color:var(--primary-100);}
+@keyframes overduePulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.15);}
+  50%{box-shadow:0 0 0 4px rgba(239,68,68,0.06);}
+}
+.overdue-tag{
+  display:block;font-size:10px;font-weight:600;color:var(--critical);margin-top:2px;
+}
+
+/* ============ LIFECYCLE STEPS ============ */
+.lifecycle{
+  display:flex;align-items:center;gap:4px;margin-top:8px;
+}
+.lifecycle-step{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;border:2px solid var(--border);color:var(--text-4);
+  background:var(--surface);position:relative;flex-shrink:0;
+}
+.lifecycle-step.active{border-color:var(--primary);color:var(--primary);background:var(--primary-50);}
+.lifecycle-step.done{border-color:var(--safe);color:#fff;background:var(--safe);}
+.lifecycle-step.current{border-color:var(--primary);color:#fff;background:var(--primary);animation:lcPulse 2s ease-in-out infinite;}
+@keyframes lcPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(249,115,22,0.3);}
+  50%{box-shadow:0 0 0 6px rgba(249,115,22,0);}
+}
+.lifecycle-connector{width:16px;height:2px;background:var(--border);flex-shrink:0;}
+.lifecycle-connector.done{background:var(--safe);}
+
+/* ============ FLOW DIAGRAM ============ */
+.flow-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:24px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+}
+.flow-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--critical),var(--primary),var(--safe));
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+}
+.flow-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.flow-title{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--text-3);display:flex;align-items:center;gap:8px;
+}
+.flow-title i{color:var(--primary);}
+.flow-tag{font-size:11px;font-weight:600;color:var(--primary);background:var(--primary-50);border:1px solid var(--primary-100);padding:3px 10px;border-radius:999px;}
+.flow-steps{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
+.flow-step{
+  flex:1;min-width:130px;max-width:180px;padding:16px 10px;border-radius:12px;
+  text-align:center;border:1px solid;position:relative;transition:transform 0.22s ease;
+}
+.flow-step:hover{transform:translateY(-2px);}
+.flow-step.s1{background:var(--critical-bg);border-color:var(--critical-border);}
+.flow-step.s2{background:var(--primary-50);border-color:var(--primary-100);}
+.flow-step.s3{background:var(--warning-bg);border-color:var(--warning-border);}
+.flow-step.s4{background:var(--primary-50);border-color:var(--primary-100);}
+.flow-step.s5{background:var(--safe-bg);border-color:var(--safe-border);}
+.flow-step-icon{
+  width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;margin:0 auto 8px;
+}
+.flow-step.s1 .flow-step-icon{background:#fff;color:var(--critical);}
+.flow-step.s2 .flow-step-icon{background:#fff;color:var(--primary);}
+.flow-step.s3 .flow-step-icon{background:#fff;color:#CA8A04;}
+.flow-step.s4 .flow-step-icon{background:#fff;color:var(--primary);}
+.flow-step.s5 .flow-step-icon{background:#fff;color:var(--safe);}
+.flow-step-num{font-size:9px;font-weight:800;color:var(--text-3);letter-spacing:0.08em;}
+.flow-step-text{font-size:13px;font-weight:700;color:var(--navy);margin-top:3px;}
+.flow-arrow{font-size:16px;color:var(--text-4);flex-shrink:0;}
+
+/* ============ DRAWER ============ */
+.drawer-backdrop{
+  position:fixed;inset:0;background:rgba(15,23,42,0.35);backdrop-filter:blur(3px);
+  z-index:100;opacity:0;pointer-events:none;transition:opacity 0.25s ease;
+}
+.drawer-backdrop.show{opacity:1;pointer-events:auto;}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;width:520px;max-width:95vw;
+  background:var(--surface);z-index:101;
+  transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);
+  display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(15,23,42,0.15);
+}
+.drawer-backdrop.show .drawer{transform:translateX(0);}
+.drawer-header{
+  padding:22px 24px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.drawer-header-left{display:flex;align-items:center;gap:12px;}
+.drawer-icon{
+  width:44px;height:44px;border-radius:12px;background:var(--primary-50);
+  border:1px solid var(--primary-100);display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:var(--primary);flex-shrink:0;
+}
+.drawer-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);}
+.drawer-title{font-size:18px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;margin-top:1px;}
+.drawer-close{
+  width:32px;height:32px;border-radius:8px;border:none;background:var(--surface-2);
+  color:var(--text-3);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:14px;transition:all 0.18s ease;flex-shrink:0;
+}
+.drawer-close:hover{background:var(--critical-bg);color:var(--critical);}
+.drawer-body{flex:1;overflow-y:auto;padding:22px 24px;}
+.drawer-footer{
+  padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0;
+}
+.drawer-footer-info{font-size:11.5px;color:var(--text-3);display:flex;align-items:center;gap:6px;}
+.drawer-footer-info i{color:var(--primary);}
+
+/* DRAWER DETAIL SECTIONS */
+.drawer-zone-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.drawer-zone-dot{
+  width:12px;height:12px;border-radius:50%;
+  box-shadow:0 0 0 3px #fff, 0 0 0 4px currentColor;
+}
+.drawer-zone-dot.critical{background:var(--critical);color:rgba(239,68,68,0.2);}
+.drawer-zone-dot.high{background:var(--primary);color:rgba(249,115,22,0.2);}
+.drawer-zone-name{font-size:22px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;}
+
+.drawer-section{margin-bottom:22px;}
+.drawer-section-title{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--text-3);margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.drawer-section-title i{font-size:11px;color:var(--primary);}
+.drawer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.drawer-grid-item{padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;}
+.drawer-grid-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-3);}
+.drawer-grid-value{font-size:14px;font-weight:700;color:var(--navy);margin-top:3px;}
+.drawer-grid-value.danger{color:var(--critical);}
+
+.drawer-reasoning{
+  padding:14px 18px;background:var(--primary-50);border:1px solid var(--primary-100);
+  border-radius:12px;font-size:13px;color:var(--text-2);line-height:1.6;
+}
+.drawer-reasoning strong{color:var(--navy);}
+
+.drawer-status-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-radius:12px;border:1px solid;
+}
+.drawer-status-bar.verified{background:linear-gradient(135deg,var(--safe-bg),#F0FDF4);border-color:var(--safe-border);}
+.drawer-status-bar.completed{background:linear-gradient(135deg,var(--safe-bg),#F0FDF4);border-color:var(--safe-border);}
+.drawer-status-bar.pending{background:linear-gradient(135deg,var(--warning-bg),#FEFCE8);border-color:var(--warning-border);}
+.drawer-status-bar.overdue{background:linear-gradient(135deg,var(--critical-bg),#FEF2F2);border-color:var(--critical-border);}
+.drawer-status-label{font-size:12px;font-weight:600;color:var(--text-2);}
+.drawer-status-badge{
+  display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.06em;padding:6px 14px;border-radius:999px;
+}
+.drawer-status-bar.verified .drawer-status-badge,
+.drawer-status-bar.completed .drawer-status-badge{background:var(--safe);color:#fff;}
+.drawer-status-bar.pending .drawer-status-badge{background:#CA8A04;color:#fff;}
+.drawer-status-bar.overdue .drawer-status-badge{background:var(--critical);color:#fff;}
+.drawer-status-badge i{font-size:12px;}
+
+/* Verification checklist */
+.verify-checklist{list-style:none;margin-top:12px;}
+.verify-checklist li{
+  display:flex;align-items:center;gap:8px;padding:6px 0;
+  font-size:12.5px;color:var(--text-2);font-weight:500;
+}
+.verify-checklist li i{color:var(--safe);font-size:12px;flex-shrink:0;}
+
+.drawer-audit{
+  margin-top:14px;padding:14px 18px;
+  border:1px solid var(--primary-100);border-radius:14px;
+  background:linear-gradient(180deg,var(--primary-50),#fff);position:relative;overflow:hidden;
+}
+.drawer-audit::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--safe));}
+.drawer-audit-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.drawer-audit-head i{color:var(--primary);font-size:13px;}
+.drawer-audit-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);}
+.drawer-audit-id{font-size:15px;font-weight:800;color:var(--navy);margin-top:4px;}
+.drawer-audit-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.drawer-audit-actions .btn{font-size:12px;padding:7px 14px;}
+
+/* ============ RECENT AUDIT ACTIVITY ============ */
+.audit-activity-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm);
+}
+.audit-activity-list{list-style:none;position:relative;padding-left:6px;}
+.audit-activity-list::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:var(--border);border-radius:2px;}
+.audit-activity-item{
+  position:relative;padding:10px 0 10px 32px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;
+  transition:opacity 0.18s ease;
+}
+.audit-activity-item:hover{opacity:0.75;}
+.audit-activity-item::before{
+  content:"";position:absolute;left:7px;top:16px;
+  width:10px;height:10px;border-radius:50%;border:2px solid #fff;
+}
+.audit-activity-item.verified::before{background:var(--safe);box-shadow:0 0 0 1px var(--safe-border);}
+.audit-activity-item.completed::before{background:var(--safe);box-shadow:0 0 0 1px var(--safe-border);}
+.audit-activity-item.pending::before{background:#CA8A04;box-shadow:0 0 0 1px var(--warning-border);}
+.audit-activity-item.overdue::before{background:var(--critical);box-shadow:0 0 0 1px var(--critical-border);}
+.audit-activity-detail{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--navy);flex-wrap:wrap;}
+.audit-activity-icon{font-size:13px;}
+.audit-activity-item.verified .audit-activity-icon,
+.audit-activity-item.completed .audit-activity-icon{color:var(--safe);}
+.audit-activity-item.pending .audit-activity-icon{color:#CA8A04;}
+.audit-activity-item.overdue .audit-activity-icon{color:var(--critical);}
+.audit-activity-meta{font-size:11px;color:var(--text-3);font-weight:500;}
+.audit-activity-meta strong{color:var(--text-2);font-weight:600;}
+.audit-activity-audit{font-size:11px;color:var(--primary);font-weight:700;white-space:nowrap;}
+.audit-activity-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.audit-activity-status{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;}
+.audit-activity-item.verified .audit-activity-status,
+.audit-activity-item.completed .audit-activity-status{color:var(--safe);}
+.audit-activity-item.pending .audit-activity-status{color:#CA8A04;}
+.audit-activity-item.overdue .audit-activity-status{color:var(--critical);}
+
+/* ============ CONFIRM MODAL ============ */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:110;
+  opacity:0;pointer-events:none;transition:opacity 0.22s ease;padding:20px;
+}
+.modal-backdrop.show{opacity:1;pointer-events:auto;}
+.modal{
+  background:#fff;border-radius:18px;width:100%;max-width:440px;
+  box-shadow:0 30px 60px -15px rgba(15,23,42,0.3);
+  transform:scale(0.92) translateY(10px);transition:transform 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+.modal-backdrop.show .modal{transform:scale(1) translateY(0);}
+.modal-body{padding:24px 26px;}
+.confirm-icon{
+  width:52px;height:52px;border-radius:14px;background:var(--safe-bg);
+  border:1px solid var(--safe-border);display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:var(--safe);margin-bottom:14px;
+}
+.confirm-title{font-size:18px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;margin-bottom:6px;}
+.confirm-text{font-size:13px;color:var(--text-2);line-height:1.55;}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.confirm-btn{
+  padding:11px 20px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:700;
+  letter-spacing:0.04em;cursor:pointer;border:1px solid transparent;transition:all 0.18s ease;
+}
+.confirm-btn.cancel{background:#fff;color:var(--text-2);border-color:var(--border);}
+.confirm-btn.cancel:hover{background:var(--surface-2);border-color:var(--border-strong);}
+.confirm-btn.confirm{background:var(--safe);color:#fff;box-shadow:0 4px 12px rgba(34,197,94,0.25);}
+.confirm-btn.confirm:hover{background:#16A34A;transform:translateY(-1px);box-shadow:0 6px 16px rgba(34,197,94,0.32);}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:28px;right:28px;background:#fff;
+  border:1px solid var(--safe-border);border-left:3px solid var(--safe);
+  border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 14px 30px -10px rgba(34,197,94,0.3), 0 6px 12px rgba(15,23,42,0.08);
+  z-index:200;transform:translateY(20px) scale(0.95);opacity:0;pointer-events:none;
+  transition:transform 0.32s cubic-bezier(0.16,1,0.3,1), opacity 0.22s ease;min-width:300px;
+}
+.toast.show{transform:translateY(0) scale(1);opacity:1;pointer-events:auto;}
+.toast-icon{
+  width:32px;height:32px;border-radius:9px;background:var(--safe-bg);color:var(--safe);
+  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
+}
+.toast-content{flex:1;}
+.toast-title{font-size:13px;font-weight:700;color:var(--navy);}
+.toast-message{font-size:11.5px;color:var(--text-2);margin-top:1px;}
+
+/* ============ RESOURCE ALLOCATION ============ */
+.resource-bar{
+  margin-top:14px;padding:14px 18px;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:12px;
+}
+.resource-bar-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-3);margin-bottom:8px;}
+.resource-bar-track{height:10px;background:var(--border);border-radius:999px;overflow:hidden;margin-bottom:6px;}
+.resource-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--safe),var(--warning),var(--critical));transition:width 0.6s ease;}
+.resource-bar-meta{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--text-2);}
+.resource-bar-meta .used{color:var(--critical);font-weight:700;}
+.resource-allocation{
+  margin-top:8px;padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:10px;
+  font-size:12px;color:var(--text-2);line-height:1.5;
+}
+.resource-allocation strong{color:var(--navy);}
+
+/* ============ PRODUCT MESSAGE ============ */
+.product-message{
+  margin-top:32px;padding:28px 32px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);text-align:center;position:relative;overflow:hidden;
+}
+.product-message::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--primary),var(--safe));
+}
+.product-message-quote{
+  font-size:17px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;
+  line-height:1.4;max-width:560px;margin:0 auto 8px;
+}
+.product-message-sub{font-size:13px;color:var(--text-2);font-weight:500;}
+
+/* ============ FOOTER ============ */
+.page-footer{
+  margin-top:24px;padding-top:20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.footer-meta{font-size:11.5px;color:var(--text-4);font-weight:500;}
+
+/* ============ ANIMATIONS ============ */
+.fade-in{animation:fadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.delay-1{animation-delay:0.05s;}.delay-2{animation-delay:0.1s;}.delay-3{animation-delay:0.15s;}
+.delay-4{animation-delay:0.2s;}.delay-5{animation-delay:0.25s;}.delay-6{animation-delay:0.3s;}
+.delay-7{animation-delay:0.35s;}.delay-8{animation-delay:0.4s;}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:1100px){
+  .container{padding:24px 22px 50px;}
+  .metrics-grid{grid-template-columns:repeat(2,1fr);}
+  .drawer-grid{grid-template-columns:1fr 1fr;}
+  .ai-reasoning-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:920px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-toggle{display:flex !important;}
+  .flow-steps{flex-direction:column;}
+  .flow-step{max-width:100%;width:100%;}
+  .flow-arrow{transform:rotate(90deg);}
+  .drawer-grid{grid-template-columns:1fr;}
+  .ai-reasoning-grid{grid-template-columns:1fr;}
+  .page-title{font-size:22px;}
+  .critical-banner-inner{flex-direction:column;}
+}
+@media (max-width:680px){
+  .container{padding:18px 16px 40px;}
+  .page-header{flex-direction:column;align-items:flex-start;}
+  .header-right{width:100%;justify-content:space-between;}
+  .metrics-grid{grid-template-columns:1fr 1fr;}
+  .action-table{min-width:auto;}
+  .action-table thead{display:none;}
+  .action-table tbody tr{display:block;padding:14px 16px;border-bottom:1px solid var(--border);}
+  .action-table td{display:flex;justify-content:space-between;padding:6px 0;border:none;}
+  .action-table td::before{content:attr(data-label);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-3);}
+  .chevron-cell::before{display:none;}
+  .drawer{width:100%;}
+  .toast{left:16px;right:16px;bottom:16px;min-width:0;}
+  .critical-factors{flex-direction:column;gap:8px;}
+  .critical-meta{flex-direction:column;gap:6px;}
+}
+.mobile-toggle{
+  display:none;position:fixed;top:14px;left:14px;
+  width:38px;height:38px;background:#fff;border:1px solid var(--border);border-radius:10px;
+  align-items:center;justify-content:center;cursor:pointer;z-index:50;
+  box-shadow:var(--shadow-sm);color:var(--text-2);
+}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.4);backdrop-filter:blur(2px);z-index:39;}
+.sidebar-overlay.show{display:block;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- Mobile toggle -->
+<button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation">
+  <i class="fa-solid fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark"><i class="fa-solid fa-shield-halved"></i></div>
+    <div class="brand-text">
+      <div class="brand-name">HEATSHIELD</div>
+      <div class="brand-tag">AI Heat Safety</div>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Operations</div>
+    <a href="Dashboard.html" class="nav-item"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+    <a href="#" class="nav-item"><i class="fa-solid fa-map-location-dot"></i><span>Heat Map</span></a>
+    <a href="Resource.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i><span>Resource Allocation</span></a>
+    <a href="safety.html" class="nav-item active"><i class="fa-solid fa-clipboard-check"></i><span>Safety Actions</span></a>
+    <a href="Worker.html" class="nav-item"><i class="fa-solid fa-people-group"></i><span>Worker Groups</span></a>
+    <a href="Alert.html" class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i><span>Alerts</span></a>
+    <a href="Incident.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i><span>Incident History</span></a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-label">System</div>
+    <a href="Setting.html" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+    <a href="Help.html" class="nav-item"><i class="fa-solid fa-circle-question"></i><span>Help</span></a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">SM</div>
+      <div class="user-info">
+        <div class="user-name">Safety Manager</div>
+        <div class="user-role">Texas Operations</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main class="main">
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="page-header fade-in">
+      <div>
+        <h1 class="page-title">Safety Actions</h1>
+        <p class="page-subtitle">AI-detected risks, prioritized interventions, execution tracking, and verified audit records.</p>
+      </div>
+      <div class="header-right">
+        <div class="status-pill"><span class="status-dot"></span>System Online</div>
+        <button class="icon-btn" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span class="notif-badge">3</span></button>
+        <div class="header-avatar" title="Safety Manager">SM</div>
+      </div>
+    </header>
+
+    <!-- CRITICAL ACTION BANNER -->
+    <section class="section fade-in delay-1" id="criticalBannerSection">
+      <div class="critical-banner" id="criticalBanner">
+        <div class="critical-banner-inner">
+          <div class="critical-icon-wrap"><i class="fa-solid fa-circle-exclamation"></i></div>
+          <div class="critical-content">
+            <div class="critical-eyebrow"><i class="fa-solid fa-bolt"></i> ACTION REQUIRED</div>
+            <div class="critical-title-row">
+              <span class="critical-zone" id="bannerZone">Dallas–Fort Worth</span>
+            </div>
+            <div class="critical-action" id="bannerAction">Deploy Cooling Unit #2</div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:8px;">Why this action is required:</div>
+            <div class="critical-factors">
+              <div class="critical-factor">
+                <div class="critical-factor-label">Heat Index</div>
+                <div class="critical-factor-value danger" id="bannerHeat">43.2°C</div>
+              </div>
+              <div class="critical-factor">
+                <div class="critical-factor-label">Workers Exposed</div>
+                <div class="critical-factor-value danger" id="bannerWorkers">184</div>
+              </div>
+              <div class="critical-factor">
+                <div class="critical-factor-label">Exposure Duration</div>
+                <div class="critical-factor-value" id="bannerDuration">8 hrs</div>
+              </div>
+              <div class="critical-factor">
+                <div class="critical-factor-label">Cooling Units Available</div>
+                <div class="critical-factor-value danger" id="bannerCooling">1 / 3</div>
+              </div>
+            </div>
+            <div class="critical-meta">
+              <span><strong>AI Priority Score:</strong> <span class="critical-score"><i class="fa-solid fa-brain"></i> 95/100</span></span>
+              <span><strong>Assigned to:</strong> Safety Manager</span>
+              <span><strong>Recommended:</strong> 10:12 AM</span>
+              <span><strong>Due by:</strong> 10:30 AM</span>
+            </div>
+            <!-- Resource allocation -->
+            <div class="resource-bar" id="resourceBar">
+              <div class="resource-bar-label">Cooling Unit Allocation</div>
+              <div class="resource-bar-track"><div class="resource-bar-fill" id="resourceBarFill" style="width:66.6%"></div></div>
+              <div class="resource-bar-meta"><span>Available: <span class="used" id="resourceAvail">1 / 3</span></span><span>Deployed: 2</span></div>
+              <div class="resource-allocation" id="resourceAllocation">
+                <i class="fa-solid fa-arrow-right" style="color:var(--primary);font-size:10px;"></i> <strong>Dallas–Fort Worth</strong> — Highest risk + 184 workers exposed
+              </div>
+            </div>
+            <div class="critical-actions-row">
+              <button class="btn btn-primary" id="bannerDeployBtn"><i class="fa-solid fa-temperature-arrow-down"></i> Deploy Cooling Unit</button>
+              <button class="btn btn-ghost" id="bannerReasoningBtn"><i class="fa-solid fa-brain"></i> View AI Reasoning</button>
+            </div>
+          </div>
+        </div>
+        <!-- AI REASONING PANEL (expandable) -->
+        <div class="ai-reasoning" id="aiReasoningPanel">
+          <div class="ai-reasoning-head"><i class="fa-solid fa-brain"></i> Why HeatShield Prioritized This</div>
+          <div class="ai-reasoning-grid">
+            <div class="ai-reasoning-item">
+              <div class="ai-reasoning-item-label">Risk Severity</div>
+              <div class="ai-reasoning-item-value danger">Critical</div>
+            </div>
+            <div class="ai-reasoning-item">
+              <div class="ai-reasoning-item-label">Workers Exposed</div>
+              <div class="ai-reasoning-item-value danger">184</div>
+            </div>
+            <div class="ai-reasoning-item">
+              <div class="ai-reasoning-item-label">Exposure Duration</div>
+              <div class="ai-reasoning-item-value">8 hrs</div>
+            </div>
+            <div class="ai-reasoning-item">
+              <div class="ai-reasoning-item-label">Resource Availability</div>
+              <div class="ai-reasoning-item-value danger">Only 1 of 3 cooling units available</div>
+            </div>
+          </div>
+          <div class="ai-reasoning-explain">
+            <strong>Dallas–Fort Worth</strong> has the highest combined heat exposure and worker count while cooling resources are limited. HeatShield therefore prioritizes this zone to protect the largest high-risk workforce first.
+          </div>
+          <div class="ai-reasoning-score"><i class="fa-solid fa-chart-line"></i> Priority Score: 95/100</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY METRICS -->
+    <section class="section fade-in delay-2">
+      <div class="section-head">
+        <div class="section-title">Action Metrics</div>
+        <div class="context-line"><i class="fa-solid fa-circle-info"></i> Total = Completed + Pending + Overdue</div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-head">
+            <div class="metric-label">Total Actions</div>
+            <div class="metric-icon"><i class="fa-solid fa-list-check"></i></div>
+          </div>
+          <div class="metric-value" id="metricTotal">8</div>
+          <div class="metric-sub">AI-recommended interventions</div>
+        </div>
+        <div class="metric-card completed">
+          <div class="metric-head">
+            <div class="metric-label">Completed</div>
+            <div class="metric-icon"><i class="fa-solid fa-circle-check"></i></div>
+          </div>
+          <div class="metric-value" id="metricCompleted">5</div>
+          <div class="metric-sub">Verified completed actions</div>
+        </div>
+        <div class="metric-card pending">
+          <div class="metric-head">
+            <div class="metric-label">Pending</div>
+            <div class="metric-icon"><i class="fa-solid fa-clock"></i></div>
+          </div>
+          <div class="metric-value" id="metricPending">2</div>
+          <div class="metric-sub">Awaiting execution</div>
+        </div>
+        <div class="metric-card overdue">
+          <div class="metric-head">
+            <div class="metric-label">Overdue</div>
+            <div class="metric-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          </div>
+          <div class="metric-value" id="metricOverdue">1</div>
+          <div class="metric-sub">Past required response time</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTERS -->
+    <section class="section fade-in delay-3">
+      <div class="filter-bar">
+        <div class="filter-label">Action Status</div>
+        <button class="filter-btn active" data-filter="all">All <span class="filter-count" id="countAll">8</span></button>
+        <button class="filter-btn" data-filter="Verified">Verified <span class="filter-count" id="countVerified">5</span></button>
+        <button class="filter-btn" data-filter="Pending">Pending <span class="filter-count" id="countPending">2</span></button>
+        <button class="filter-btn" data-filter="Overdue">Overdue <span class="filter-count" id="countOverdue">1</span></button>
+      </div>
+    </section>
+
+    <!-- ACTION TABLE -->
+    <section class="section fade-in delay-4">
+      <div class="action-table-card">
+        <div class="table-head-bar">
+          <div>
+            <div class="table-title">Safety Action Log</div>
+            <div class="table-subtitle">AI-recommended interventions, owners, and execution status.</div>
+          </div>
+          <div class="context-line"><i class="fa-solid fa-hand-pointer"></i> Click any row for full details</div>
+        </div>
+        <div class="table-wrap">
+          <table class="action-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Zone</th>
+                <th>Heat Risk</th>
+                <th>Recommended Action</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="actionTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW HEATSHIELD CLOSES THE SAFETY LOOP -->
+    <section class="section fade-in delay-5">
+      <div class="flow-card">
+        <div class="flow-head">
+          <div class="flow-title"><i class="fa-solid fa-arrows-turn-to-dots"></i> How HeatShield Closes the Safety Loop</div>
+          <div class="flow-tag">Accountability Chain</div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step s1">
+            <div class="flow-step-icon"><i class="fa-solid fa-temperature-arrow-up"></i></div>
+            <div class="flow-step-num">01</div>
+            <div class="flow-step-text">Detect Risk</div>
+          </div>
+          <div class="flow-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+          <div class="flow-step s2">
+            <div class="flow-step-icon"><i class="fa-solid fa-brain"></i></div>
+            <div class="flow-step-num">02</div>
+            <div class="flow-step-text">Prioritize</div>
+          </div>
+          <div class="flow-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+          <div class="flow-step s3">
+            <div class="flow-step-icon"><i class="fa-solid fa-bolt"></i></div>
+            <div class="flow-step-num">03</div>
+            <div class="flow-step-text">Recommend Action</div>
+          </div>
+          <div class="flow-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+          <div class="flow-step s4">
+            <div class="flow-step-icon"><i class="fa-solid fa-user-check"></i></div>
+            <div class="flow-step-num">04</div>
+            <div class="flow-step-text">Execute & Verify</div>
+          </div>
+          <div class="flow-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+          <div class="flow-step s5">
+            <div class="flow-step-icon"><i class="fa-solid fa-file-shield"></i></div>
+            <div class="flow-step-num">05</div>
+            <div class="flow-step-text">Audit</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECENT AUDIT ACTIVITY -->
+    <section class="section fade-in delay-6">
+      <div class="section-head">
+        <div class="section-title">Recent Audit Activity</div>
+      </div>
+      <div class="audit-activity-card">
+        <ul class="audit-activity-list" id="auditActivityList"></ul>
+      </div>
+    </section>
+
+    <!-- PRODUCT MESSAGE -->
+    <section class="fade-in delay-7">
+      <div class="product-message">
+        <div class="product-message-quote">HeatShield doesn't just recommend safety actions — it records whether they happened.</div>
+        <div class="product-message-sub">Every intervention becomes a traceable, auditable safety record.</div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="page-footer fade-in delay-8">
+      <div class="footer-meta">HeatShield v2.4 · Safety Actions & Audit Module</div>
+    </footer>
+
+  </div>
+</main>
+
+<!-- ============ DRAWER ============ -->
+<div class="drawer-backdrop" id="drawerBackdrop">
+  <div class="drawer">
+    <div class="drawer-header">
+      <div class="drawer-header-left">
+        <div class="drawer-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+        <div>
+          <div class="drawer-eyebrow">Action Details</div>
+          <div class="drawer-title" id="drawerTitle">Zone</div>
+        </div>
+      </div>
+      <button class="drawer-close" id="drawerClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-footer" id="drawerFooter"></div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM MODAL ============ -->
+<div class="modal-backdrop" id="confirmBackdrop">
+  <div class="modal">
+    <div class="modal-body">
+      <div class="confirm-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="confirm-title">Mark this safety action as completed?</div>
+      <div class="confirm-text">
+        This will record the current time as the completion time, create a verified audit record, and update all related metrics automatically.
+      </div>
+      <div class="confirm-actions">
+        <button class="confirm-btn cancel" id="confirmCancel">Cancel</button>
+        <button class="confirm-btn confirm" id="confirmConfirm">Confirm Completion</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>
+  <div class="toast-content">
+    <div class="toast-title" id="toastTitle">Action Completed</div>
+    <div class="toast-message" id="toastMessage">Audit record created.</div>
+  </div>
+</div>
+
+
+<script>
+/* ============================================================
+   DATA — 8 actions: 5 verified, 2 pending, 1 overdue
+   ============================================================ */
+const SUPABASE_URL = 'https://keztqrrtzhxjvstfuqfp.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_79OlgP1MibPc_l0l7MN5Qg_dqID04ua';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+async function loadZonesFromBackend() {
+  const { data, error } = await supabaseClient.from('zones').select('*').order('id', { ascending: true });
+  if (error) { console.error('❌ Failed to load zones from Supabase:', error); return []; }
+  console.log('🔥 ZONES FROM SUPABASE:', data);
+  return data || [];
+}
+
+const NOW = new Date();
+function makeTime(minsAgo) {
+  const d = new Date(NOW.getTime() - minsAgo * 60000);
+  let h = d.getHours(), m = d.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return h + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+}
+
+let actions = [
+  {
+    id: 1, time: makeTime(38), zone: 'Dallas–Fort Worth', risk: 'Critical', riskClass: 'critical',
+    action: 'Deploy Cooling Unit #2', owner: 'Safety Manager',
+    status: 'Verified', heatIndex: '43.2°C', workers: 184, duration: '8 hrs',
+    recommended: makeTime(38), due: makeTime(23), completed: makeTime(32),
+    auditId: 'HS-20481', priorityScore: 95,
+    reasoning: 'Dallas–Fort Worth has the highest combined heat exposure and worker count while cooling resources are limited. HeatShield therefore prioritizes this zone to protect the largest high-risk workforce first.',
+    resource: 'Cooling Unit #2'
+  },
+  {
+    id: 2, time: makeTime(35), zone: 'Houston', risk: 'High', riskClass: 'high',
+    action: 'Start Worker Rotation', owner: 'Shift Lead',
+    status: 'Verified', heatIndex: '40.1°C', workers: 96, duration: '6 hrs',
+    recommended: makeTime(35), due: makeTime(20), completed: makeTime(30),
+    auditId: 'HS-20482', priorityScore: 82,
+    reasoning: 'Houston shows sustained high heat index with moderate worker density. Rotating shifts reduces cumulative exposure without requiring additional resources.',
+    resource: null
+  },
+  {
+    id: 3, time: makeTime(30), zone: 'Austin–San Antonio', risk: 'High', riskClass: 'high',
+    action: 'Schedule Extra Break', owner: 'Zone Supervisor',
+    status: 'Verified', heatIndex: '39.8°C', workers: 72, duration: '5 hrs',
+    recommended: makeTime(30), due: makeTime(15), completed: makeTime(25),
+    auditId: 'HS-20483', priorityScore: 74,
+    reasoning: 'Austin–San Antonio heat index is approaching critical thresholds. Additional breaks provide recovery time without disrupting operations.',
+    resource: null
+  },
+  {
+    id: 4, time: makeTime(25), zone: 'El Paso', risk: 'High', riskClass: 'high',
+    action: 'Distribute Hydration Supplies', owner: 'Safety Manager',
+    status: 'Verified', heatIndex: '41.5°C', workers: 45, duration: '4 hrs',
+    recommended: makeTime(25), due: makeTime(10), completed: makeTime(20),
+    auditId: 'HS-20484', priorityScore: 68,
+    reasoning: 'El Paso has elevated heat index with a smaller workforce. Hydration distribution is a fast, low-resource intervention that reduces dehydration risk.',
+    resource: null
+  },
+  {
+    id: 5, time: makeTime(20), zone: 'San Angelo', risk: 'High', riskClass: 'high',
+    action: 'Activate Shade Structures', owner: 'Zone Supervisor',
+    status: 'Verified', heatIndex: '38.9°C', workers: 38, duration: '3 hrs',
+    recommended: makeTime(20), due: makeTime(5), completed: makeTime(15),
+    auditId: 'HS-20485', priorityScore: 61,
+    reasoning: 'San Angelo heat levels require passive cooling measures. Shade structures reduce direct sun exposure for the on-site workforce.',
+    resource: null
+  },
+  {
+    id: 6, time: makeTime(10), zone: 'Lubbock', risk: 'High', riskClass: 'high',
+    action: 'Increase Hydration Frequency', owner: 'Shift Lead',
+    status: 'Pending', heatIndex: '39.4°C', workers: 52, duration: '4 hrs',
+    recommended: makeTime(10), due: makeTime(-5), completed: null,
+    auditId: null, priorityScore: 65,
+    reasoning: 'Lubbock shows rising heat index trends. Increasing hydration frequency is a proactive measure to prevent heat-related incidents before conditions worsen.',
+    resource: null
+  },
+  {
+    id: 7, time: makeTime(5), zone: 'Midland–Odessa', risk: 'High', riskClass: 'high',
+    action: 'Implement Work-Rest Cycle', owner: 'Zone Supervisor',
+    status: 'Pending', heatIndex: '40.6°C', workers: 63, duration: '5 hrs',
+    recommended: makeTime(5), due: makeTime(-10), completed: null,
+    auditId: null, priorityScore: 71,
+    reasoning: 'Midland–Odessa has a high heat index with significant worker exposure. Structured work-rest cycles reduce cumulative heat stress effectively.',
+    resource: null
+  },
+  {
+    id: 8, time: makeTime(18), zone: 'Zone C – Corpus Christi', risk: 'High', riskClass: 'high',
+    action: 'Deploy Misting Station', owner: 'Safety Manager',
+    status: 'Overdue', heatIndex: '42.0°C', workers: 88, duration: '6 hrs',
+    recommended: makeTime(18), due: makeTime(3), completed: null,
+    auditId: null, priorityScore: 85,
+    reasoning: 'Corpus Christi has extreme heat with no active cooling measures in the zone. Misting station deployment is critical for 88 exposed workers. No completion confirmation has been received — action is now overdue.',
+    resource: 'Misting Station #1'
+  }
+];
+
+/* ============================================================
+   COMPUTED STATE
+   ============================================================ */
+function getOverdueBy(action) {
+  if (action.status !== 'Overdue') return null;
+  /* Calculate minutes past due */
+  const dueParts = action.due.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!dueParts) return null;
+  let dueH = parseInt(dueParts[1]), dueM = parseInt(dueParts[2]);
+  const dueAmpm = dueParts[3].toUpperCase();
+  if (dueAmpm === 'PM' && dueH !== 12) dueH += 12;
+  if (dueAmpm === 'AM' && dueH === 12) dueH = 0;
+  const dueTime = new Date(NOW);
+  dueTime.setHours(dueH, dueM, 0, 0);
+  const diffMs = NOW.getTime() - dueTime.getTime();
+  const diffMin = Math.max(1, Math.round(diffMs / 60000));
+  return diffMin;
+}
+
+function getCounts() {
+  const verified = actions.filter(a => a.status === 'Verified').length;
+  const pending = actions.filter(a => a.status === 'Pending').length;
+  const overdue = actions.filter(a => a.status === 'Overdue').length;
+  return { total: verified + pending + overdue, verified, pending, overdue };
+}
+
+/* ============================================================
+   RENDER METRICS
+   ============================================================ */
+function renderMetrics() {
+  const c = getCounts();
+  document.getElementById('metricTotal').textContent = c.total;
+  document.getElementById('metricCompleted').textContent = c.verified;
+  document.getElementById('metricPending').textContent = c.pending;
+  document.getElementById('metricOverdue').textContent = c.overdue;
+  document.getElementById('countAll').textContent = c.total;
+  document.getElementById('countVerified').textContent = c.verified;
+  document.getElementById('countPending').textContent = c.pending;
+  document.getElementById('countOverdue').textContent = c.overdue;
+}
+
+/* ============================================================
+   RENDER TABLE
+   ============================================================ */
+let currentFilter = 'all';
+
+function renderTable() {
+  const tbody = document.getElementById('actionTableBody');
+  let filtered = actions;
+  if (currentFilter !== 'all') {
+    filtered = actions.filter(a => a.status === currentFilter);
+  }
+  tbody.innerHTML = filtered.map(a => {
+    const statusIcon = a.status === 'Verified' ? 'fa-circle-check' :
+                       a.status === 'Overdue' ? 'fa-triangle-exclamation' : 'fa-clock';
+    const overdueTag = a.status === 'Overdue' && getOverdueBy(a)
+      ? `<span class="overdue-tag">Overdue by: ${getOverdueBy(a)} min</span>` : '';
+    return `<tr data-id="${a.id}" onclick="openDrawer(${a.id})">
+      <td data-label="Time"><span class="time-cell">${a.time}</span></td>
+      <td data-label="Zone"><span class="zone-cell"><span class="zone-dot-sm ${a.riskClass}"></span>${a.zone}</span></td>
+      <td data-label="Heat Risk"><span class="risk-badge ${a.riskClass}">${a.risk}</span></td>
+      <td data-label="Action"><span class="action-text-cell">${a.action}</span></td>
+      <td data-label="Owner"><span class="owner-cell"><i class="fa-solid fa-user"></i>${a.owner}</span></td>
+      <td data-label="Status">
+        <span class="status-badge ${a.status.toLowerCase()}"><i class="fa-solid ${statusIcon}"></i> ${a.status}</span>
+        ${overdueTag}
+      </td>
+      <td data-label=""><span class="chevron-cell"><i class="fa-solid fa-chevron-right"></i></span></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ============================================================
+   RENDER AUDIT ACTIVITY
+   ============================================================ */
+async function loadAuditRecords() {
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    console.error('❌ Could not get logged-in user:', userError);
+    return [];
+  }
+
+  const { data, error } = await supabaseClient
+    .from('audit_records')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(6);
+
+  if (error) {
+    console.error('❌ Failed to load audit records:', error);
+    return [];
+  }
+
+  console.log('📋 AUDIT RECORDS FROM SUPABASE:', data);
+  window.auditRecords = data || [];
+
+  return data || [];
+}
+async function renderAuditActivity() {
+  const list = document.getElementById('auditActivityList');
+
+  const auditRecords = await loadAuditRecords();
+  window.currentAuditRecords = auditRecords;
+
+  if (!auditRecords || auditRecords.length === 0) {
+    list.innerHTML = `
+      <li class="audit-activity-item">
+        <div class="audit-activity-detail">
+          <i class="fa-solid fa-clock audit-activity-icon"></i>
+          <span>No audit records found</span>
+        </div>
+      </li>
+    `;
+    return;
+  }
+
+  list.innerHTML = auditRecords.map(record => {
+
+    const status = record.status || 'Verified';
+
+    const icon =
+      status.toLowerCase() === 'verified'
+        ? 'fa-circle-check'
+        : status.toLowerCase() === 'overdue'
+        ? 'fa-triangle-exclamation'
+        : 'fa-clock';
+
+    const zone =
+      record.zone_name ||
+      record.zone ||
+      'Unknown Zone';
+
+    const action =
+      record.action ||
+      record.action_name ||
+      'Safety Action';
+
+    const owner =
+      record.owner ||
+      'Safety Manager';
+
+    const auditId =
+      record.audit_id ||
+      'N/A';
+
+    const completedTime =
+      record.completed_at
+        ? new Date(record.completed_at).toLocaleString()
+        : 'Not completed';
+
+    return `
+  <li class="audit-activity-item ${status.toLowerCase()}" 
+      onclick="openAuditDrawer(${record.id})"
+      style="cursor:pointer;">
+
+        <div class="audit-activity-detail">
+          <i class="fa-solid ${icon} audit-activity-icon"></i>
+          <span>${zone} — ${action}</span>
+        </div>
+
+        <div class="audit-activity-right">
+
+          <div class="audit-activity-meta">
+            <strong>${owner}</strong>
+            · Completed ${completedTime}
+          </div>
+
+          <span class="audit-activity-audit">
+            ${auditId}
+          </span>
+
+          <div class="audit-activity-status">
+            ${status}
+          </div>
+
+        </div>
+
+      </li>
+    `;
+  }).join('');
+}
+function openAuditDrawer(auditId) {
+  const record = window.auditRecords?.find(r => r.id === auditId);
+
+  if (!record) {
+    console.error('❌ Audit record not found:', auditId);
+    return;
+  }
+
+  document.getElementById('drawerTitle').textContent =
+    record.zone_name || 'Audit Record';
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-zone-row">
+      <span class="drawer-zone-name">
+        ${record.zone_name || 'Unknown Zone'}
+      </span>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fa-solid fa-file-shield"></i>
+        Audit Record
+      </div>
+
+      <div class="drawer-grid">
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Audit ID</div>
+          <div class="drawer-grid-value">
+            ${record.audit_id || '—'}
+          </div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Status</div>
+          <div class="drawer-grid-value">
+            ${record.status || '—'}
+          </div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Action</div>
+          <div class="drawer-grid-value">
+            ${record.action || '—'}
+          </div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Owner</div>
+          <div class="drawer-grid-value">
+            ${record.owner || '—'}
+          </div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Heat Index</div>
+          <div class="drawer-grid-value">
+            ${record.heat_index ?? '—'}°C
+          </div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Workers</div>
+          <div class="drawer-grid-value">
+            ${record.workers ?? '—'}
+          </div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Priority Score</div>
+          <div class="drawer-grid-value">
+            ${record.priority_score ?? '—'}/100
+          </div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Completed</div>
+          <div class="drawer-grid-value">
+            ${record.completed_at
+              ? new Date(record.completed_at).toLocaleString()
+              : '—'}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fa-solid fa-brain"></i>
+        AI Reasoning
+      </div>
+
+      <div class="drawer-reasoning">
+        ${record.reasoning || 'No reasoning recorded.'}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('drawerFooter').innerHTML = `
+    <div class="drawer-footer-info">
+      <i class="fa-solid fa-file-shield"></i>
+      ${record.audit_id || 'Audit Record'}
+    </div>
+  `;
+
+  document.getElementById('drawerBackdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+/* ============================================================
+   DRAWER
+   ============================================================ */
+let currentDrawerId = null;
+
+function openDrawer(id) {
+  const a = actions.find(x => x.id === id);
+  if (!a) return;
+  currentDrawerId = id;
+
+  document.getElementById('drawerTitle').textContent = a.zone;
+
+  /* Build lifecycle steps */
+  const steps = ['Recommended', 'Assigned', 'In Progress', 'Completed', 'Verified'];
+  const statusIdx = a.status === 'Verified' ? 4 : a.status === 'Completed' ? 3 : a.status === 'Overdue' ? 2 : a.status === 'Pending' ? 1 : 0;
+  let lifecycleHTML = '<div class="lifecycle">';
+  steps.forEach((s, i) => {
+    const cls = i < statusIdx ? 'done' : i === statusIdx ? (a.status === 'Pending' || a.status === 'Overdue' ? 'current' : 'done') : '';
+    const connCls = i < statusIdx ? 'done' : '';
+    lifecycleHTML += `<div class="lifecycle-step ${cls}" title="${s}"><span>${i + 1}</span></div>`;
+    if (i < steps.length - 1) lifecycleHTML += `<div class="lifecycle-connector ${connCls}"></div>`;
+  });
+  lifecycleHTML += '</div>';
+
+  /* Status bar */
+  const statusCls = a.status.toLowerCase();
+  const statusIcon = statusCls === 'verified' ? 'fa-circle-check' : statusCls === 'overdue' ? 'fa-triangle-exclamation' : 'fa-clock';
+  const overdueNote = a.status === 'Overdue' && getOverdueBy(a) ? `<div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--critical);"><i class="fa-solid fa-clock"></i> Overdue by ${getOverdueBy(a)} min</div>` : '';
+
+  /* Verification checklist for verified */
+  let verifyHTML = '';
+  if (a.status === 'Verified') {
+    verifyHTML = `<ul class="verify-checklist">
+      <li><i class="fa-solid fa-check"></i> Action completed</li>
+      <li><i class="fa-solid fa-check"></i> Timestamp recorded</li>
+      <li><i class="fa-solid fa-check"></i> Owner recorded</li>
+      <li><i class="fa-solid fa-check"></i> Resource allocation recorded</li>
+      <li><i class="fa-solid fa-check"></i> Audit record created</li>
+    </ul>`;
+  }
+
+  /* Audit section */
+  let auditHTML = '';
+  if (a.auditId) {
+    auditHTML = `<div class="drawer-audit">
+      <div class="drawer-audit-head"><i class="fa-solid fa-file-shield"></i><div class="drawer-audit-title">Audit Record</div></div>
+      <div class="drawer-audit-id">${a.auditId}</div>
+      <div class="drawer-audit-actions">
+        <button class="btn btn-ghost" onclick="event.stopPropagation();showToast('Audit Record','Opening ${a.auditId}...')"><i class="fa-solid fa-eye"></i> View Audit Record</button>
+        <button class="btn btn-ghost" onclick="event.stopPropagation();showToast('Evidence','Attachment dialog opened.')"><i class="fa-solid fa-paperclip"></i> Attach Evidence</button>
+        <button class="btn btn-ghost" onclick="event.stopPropagation();showToast('Note','Note added to audit record.')"><i class="fa-solid fa-pen"></i> Add Note</button>
+      </div>
+    </div>`;
+  }
+
+  const body = document.getElementById('drawerBody');
+  body.innerHTML = `
+    <div class="drawer-zone-row">
+      <span class="drawer-zone-dot ${a.riskClass}"></span>
+      <span class="drawer-zone-name">${a.zone}</span>
+    </div>
+    ${lifecycleHTML}
+    <div style="margin-top:16px;">
+      <div class="drawer-status-bar ${statusCls}">
+        <span class="drawer-status-label">${a.status === 'Overdue' ? 'Past due — no completion received' : a.status === 'Verified' ? 'Action verified and recorded' : a.status === 'Pending' ? 'Awaiting execution' : 'In progress'}</span>
+        <span class="drawer-status-badge"><i class="fa-solid ${statusIcon}"></i> ${a.status}</span>
+      </div>
+      ${overdueNote}
+    </div>
+    ${verifyHTML}
+
+    <div class="drawer-section">
+      <div class="drawer-section-title"><i class="fa-solid fa-temperature-half"></i> Risk Details</div>
+      <div class="drawer-grid">
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Risk Level</div>
+          <div class="drawer-grid-value ${a.risk === 'Critical' ? 'danger' : ''}">${a.risk}</div>
+        </div>
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Heat Index</div>
+          <div class="drawer-grid-value ${a.risk === 'Critical' ? 'danger' : ''}">${a.heatIndex}</div>
+        </div>
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Workers Exposed</div>
+          <div class="drawer-grid-value">${a.workers}</div>
+        </div>
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Exposure Duration</div>
+          <div class="drawer-grid-value">${a.duration}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title"><i class="fa-solid fa-bolt"></i> AI Recommendation</div>
+      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;">${a.action}</div>
+      <div style="font-size:12px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px;">
+        <i class="fa-solid fa-brain"></i> AI Priority Score: ${a.priorityScore}/100
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title"><i class="fa-solid fa-brain"></i> AI Reasoning</div>
+      <div class="drawer-reasoning">${a.reasoning}</div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title"><i class="fa-solid fa-user-tag"></i> Assignment</div>
+      <div class="drawer-grid">
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Owner</div>
+          <div class="drawer-grid-value"><i class="fa-solid fa-user" style="font-size:11px;color:var(--text-3);margin-right:4px;"></i>${a.owner}</div>
+        </div>
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Recommended</div>
+          <div class="drawer-grid-value">${a.recommended}</div>
+        </div>
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Due By</div>
+          <div class="drawer-grid-value ${a.status === 'Overdue' ? 'danger' : ''}">${a.due}</div>
+        </div>
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Completed</div>
+          <div class="drawer-grid-value">${a.completed || '—'}</div>
+        </div>
+      </div>
+    </div>
+
+    ${auditHTML}
+  `;
+
+  /* Footer */
+  const footer = document.getElementById('drawerFooter');
+  if (a.status === 'Pending' || a.status === 'Overdue') {
+    footer.innerHTML = `
+      <div class="drawer-footer-info"><i class="fa-solid fa-brain"></i> AI Score: ${a.priorityScore}/100</div>
+      <button class="btn btn-safe" id="drawerMarkComplete"><i class="fa-solid fa-circle-check"></i> Mark as Completed</button>
+    `;
+    document.getElementById('drawerMarkComplete').addEventListener('click', () => {
+      closeDrawer();
+      openConfirm(id);
+    });
+  } else {
+    footer.innerHTML = `
+      <div class="drawer-footer-info"><i class="fa-solid fa-file-shield"></i> ${a.auditId}</div>
+      <button class="btn btn-ghost" onclick="showToast('Audit Record','Opening ${a.auditId}...')"><i class="fa-solid fa-eye"></i> View Audit Record</button>
+    `;
+  }
+
+  document.getElementById('drawerBackdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  document.getElementById('drawerBackdrop').classList.remove('show');
+  document.body.style.overflow = '';
+  currentDrawerId = null;
+}
+
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+document.getElementById('drawerBackdrop').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeDrawer();
+});
+
+/* ============================================================
+   CONFIRM MODAL
+   ============================================================ */
+let confirmActionId = null;
+
+function openConfirm(id) {
+  confirmActionId = id;
+  document.getElementById('confirmBackdrop').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmBackdrop').classList.remove('show');
+  confirmActionId = null;
+}
+
+document.getElementById('confirmCancel').addEventListener('click', closeConfirm);
+document.getElementById('confirmBackdrop').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeConfirm();
+});
+document.getElementById('confirmConfirm').addEventListener('click', async () => {
+  if (confirmActionId === null) return;
+
+  const a = actions.find(x => x.id === confirmActionId);
+  if (!a) return;
+
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    console.error('❌ No logged-in user:', userError);
+    showToast('Error', 'You must be logged in to complete an action.');
+    return;
+  }
+
+  const completedAt = new Date().toISOString();
+
+  // Generate audit ID
+  const auditId = 'HS-' + Date.now();
+
+  a.auditId = auditId;
+
+  // Save audit record to Supabase
+  const { data: auditRecord, error: auditError } =
+    await supabaseClient
+      .from('audit_records')
+      .insert({
+        user_id: user.id,
+        action_id: a.id,
+        zone_id: a.zoneId || null,
+
+        zone_name: a.zone,
+        action: a.action,
+        owner: a.owner,
+
+        status: 'Verified',
+
+        heat_index: parseFloat(a.heatIndex),
+        workers: a.workers,
+        exposure_duration: a.duration,
+
+        priority_score: a.priorityScore,
+
+        recommended_at: new Date().toISOString(),
+        due_at: new Date().toISOString(),
+        completed_at: completedAt,
+
+        audit_id: auditId,
+
+        reasoning: a.reasoning
+      })
+
+  if (auditError) {
+    console.error('❌ Failed to create audit record:', auditError);
+
+    showToast(
+      'Error',
+      'Could not create the audit record. Check Supabase.'
+    );
+
+    return;
+  }
+
+  console.log('✅ AUDIT RECORD CREATED:', auditRecord);
+
+/* ============================================================
+   UPDATE ZONE STATUS IN SUPABASE
+   ============================================================ */
+  // Update the corresponding zone in Supabase
+if (a.zoneId) {
+  console.log('🔍 Updating zone:', {
+    zoneId: a.zoneId,
+    actionId: a.id,
+    zoneName: a.zone
+  });
+
+  const {
+    data: updatedZone,
+    error: zoneError
+  } = await supabaseClient
+    .from('zones')
+    .update({ status: 'Verified' })
+    .eq('id', a.zoneId)
+    .select('id, name, status')
+    .single();
+
+  if (zoneError) {
+    console.error('❌ Failed to update zone status:', zoneError);
+
+    showToast(
+      'Error',
+      'Audit was created, but the zone status could not be updated.'
+    );
+
+    return;
+  }
+
+  console.log(
+    '✅ ZONE REALLY UPDATED IN SUPABASE:',
+    updatedZone
+  );
+
+  // Safety check
+  if (updatedZone.status !== 'Verified') {
+    console.error(
+      '❌ Supabase returned unexpected zone status:',
+      updatedZone
+    );
+
+    showToast(
+      'Error',
+      'Zone update did not return Verified.'
+    );
+
+    return;
+  }
+}
+
+/* Update local action state */
+  a.status = 'Verified';
+  a.completed = makeTime(0);
+  a.auditId = auditId;
+
+  closeConfirm();
+
+  renderAll();
+
+  updateCriticalBanner();
+
+  showToast(
+    'Action Verified',
+    `${a.action} at ${a.zone} — ${auditId}`
+  );
+});
+/* ============================================================
+   CRITICAL BANNER
+   ============================================================ */
+function updateCriticalBanner() {
+  const criticalAction = actions
+    .filter(action => action.risk === 'Critical' || action.priorityScore >= 80)
+    .sort((a, b) => (b.priorityScore || 0) - (a.priorityScore || 0))[0];
+
+  if (!criticalAction) {
+    console.log('ℹ️ No critical safety action found');
+    return;
+  }
+
+  // Main banner
+  document.getElementById('bannerZone').textContent =
+    criticalAction.zone || 'Unknown Zone';
+
+  document.getElementById('bannerAction').textContent =
+    criticalAction.action || 'Safety Action Required';
+
+  // Main metrics
+  document.getElementById('bannerHeat').textContent =
+    criticalAction.heatIndex || 'N/A';
+
+  document.getElementById('bannerWorkers').textContent =
+    criticalAction.workers ?? 'N/A';
+
+  document.getElementById('bannerDuration').textContent =
+    criticalAction.duration || 'N/A';
+
+  document.getElementById('bannerCooling').textContent =
+    criticalAction.coolingUnitsNeeded
+      ? `${criticalAction.coolingUnits || 0} / ${criticalAction.coolingUnitsNeeded}`
+      : 'N/A';
+
+  // Priority score
+  const scoreElement = document.querySelector('.critical-score');
+  if (scoreElement) {
+    scoreElement.innerHTML =
+      `<i class="fa-solid fa-brain"></i> ${criticalAction.priorityScore || 0}/100`;
+  }
+
+  // Update meta information
+  const metaItems = document.querySelectorAll('.critical-meta > span');
+
+  if (metaItems.length >= 4) {
+    metaItems[1].innerHTML =
+      `<strong>Assigned to:</strong> ${criticalAction.owner || 'Safety Manager'}`;
+
+    metaItems[2].innerHTML =
+      `<strong>Recommended:</strong> ${criticalAction.recommended || 'Now'}`;
+
+    metaItems[3].innerHTML =
+      `<strong>Due by:</strong> ${criticalAction.due || '—'}`;
+  }
+
+  // Resource allocation
+  const resourceAllocation =
+    document.getElementById('resourceAllocation');
+
+  if (resourceAllocation) {
+    resourceAllocation.innerHTML =
+      `<i class="fa-solid fa-arrow-right"
+          style="color:var(--primary);font-size:10px;"></i>
+       <strong>${criticalAction.zone}</strong>
+       — ${criticalAction.workers || 0} workers exposed`;
+  }
+
+  // Resource bar
+  const resourceBarFill =
+    document.getElementById('resourceBarFill');
+
+  if (resourceBarFill) {
+    const total =
+      criticalAction.coolingUnitsNeeded || 0;
+
+    const available =
+      criticalAction.coolingUnits || 0;
+
+    const deployed =
+      Math.max(0, total - available);
+
+    const percentage =
+      total > 0
+        ? Math.min(100, (deployed / total) * 100)
+        : 0;
+
+    resourceBarFill.style.width = `${percentage}%`;
+  }
+
+  // Resource availability text
+  const resourceAvail =
+    document.getElementById('resourceAvail');
+
+  if (resourceAvail) {
+    resourceAvail.textContent =
+      `${criticalAction.coolingUnits || 0} / ${criticalAction.coolingUnitsNeeded || 0}`;
+  }
+
+  // AI reasoning panel
+  const reasoningItems =
+    document.querySelectorAll('.ai-reasoning-item-value');
+
+  if (reasoningItems.length >= 4) {
+    reasoningItems[0].textContent =
+      criticalAction.risk || 'Unknown';
+
+    reasoningItems[1].textContent =
+      criticalAction.workers ?? 'N/A';
+
+    reasoningItems[2].textContent =
+      criticalAction.duration || 'N/A';
+
+    reasoningItems[3].textContent =
+      criticalAction.coolingUnitsNeeded
+        ? `Available: ${criticalAction.coolingUnits || 0} of ${criticalAction.coolingUnitsNeeded}`
+        : 'No resource data available';
+  }
+
+  // AI explanation
+  const reasoningExplain =
+    document.querySelector('.ai-reasoning-explain');
+
+  if (reasoningExplain) {
+    reasoningExplain.innerHTML =
+      `<strong>${criticalAction.zone}</strong>
+       has a heat index of ${criticalAction.heatIndex || 'N/A'}
+       with ${criticalAction.workers || 0} workers exposed
+       for ${criticalAction.duration || 'N/A'}.
+       HeatShield prioritizes this intervention based on
+       heat risk and workforce exposure.`;
+  }
+
+  // AI reasoning score
+  const reasoningScore =
+    document.querySelector('.ai-reasoning-score');
+
+  if (reasoningScore) {
+    reasoningScore.innerHTML =
+      `<i class="fa-solid fa-chart-line"></i>
+       Priority Score: ${criticalAction.priorityScore || 0}/100`;
+  }
+
+  console.log('✅ Critical banner updated with REAL zone data:', criticalAction);
+}
+/* ============================================================
+   AI REASONING TOGGLE
+   ============================================================ */
+document.getElementById('bannerReasoningBtn').addEventListener('click', () => {
+  document.getElementById('aiReasoningPanel').classList.toggle('open');
+  const btn = document.getElementById('bannerReasoningBtn');
+  const panel = document.getElementById('aiReasoningPanel');
+  if (panel.classList.contains('open')) {
+    btn.innerHTML = '<i class="fa-solid fa-brain"></i> Hide AI Reasoning';
+  } else {
+    btn.innerHTML = '<i class="fa-solid fa-brain"></i> View AI Reasoning';
+  }
+});
+
+/* ============================================================
+   DEPLOY BUTTON (same as mark complete for action #1)
+   ============================================================ */
+document.getElementById('bannerDeployBtn').addEventListener('click', () => {
+  const a = actions.find(x => x.id === 1);
+  if (!a || a.status === 'Verified') return;
+  openConfirm(1);
+});
+
+/* ============================================================
+   FILTER BUTTONS
+   ============================================================ */
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderTable();
+  });
+});
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimeout;
+function showToast(title, message) {
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMessage').textContent = message;
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+/* ============================================================
+   OVERDUE TIMER — updates every minute
+   ============================================================ */
+function updateOverdueTimes() {
+  actions.forEach(a => {
+    if (a.status === 'Overdue') {
+      /* Recompute — time is dynamic */
+    }
+  });
+  renderTable();
+}
+setInterval(updateOverdueTimes, 60000);
+
+/* ============================================================
+   MOBILE SIDEBAR
+   ============================================================ */
+document.getElementById('mobileToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+});
+document.getElementById('sidebarOverlay').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+});
+
+/* ============================================================
+   KEYBOARD
+   ============================================================ */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeDrawer();
+    closeConfirm();
+  }
+});
+
+/* ============================================================
+   GENERATE SAFETY ACTIONS FROM SUPABASE ZONES
+   ============================================================ */
+function generateActionsFromZones(zones, auditRecords = []) {
+  return zones.map((zone, index) => {
+
+    const heatIndex = Number(zone.heat_index ?? zone.heatIndex ?? 0);
+    const workers = Number(zone.workers ?? 0);
+    const exposureHours = Number(
+      zone.exposure_hours ?? zone.exposureHours ?? 0
+    );
+
+    const risk = String(zone.risk ?? 'Low');
+    const riskClass =
+      risk.toLowerCase() === 'medium'
+        ? 'moderate'
+        : risk.toLowerCase();
+
+    let action;
+    let owner;
+    let resource = null;
+    let priorityScore;
+
+    if (riskClass === 'critical') {
+      action = 'Deploy Cooling Unit';
+      owner = 'Safety Manager';
+      resource = 'Cooling Unit';
+      priorityScore = 95;
+    }
+    else if (riskClass === 'high' && workers >= 50) {
+      action = 'Start Worker Rotation';
+      owner = 'Shift Lead';
+      priorityScore = 85;
+    }
+    else if (riskClass === 'high') {
+      action = 'Increase Hydration Frequency';
+      owner = 'Safety Manager';
+      priorityScore = 75;
+    }
+    else if (riskClass === 'moderate') {
+      action = 'Schedule Extra Break';
+      owner = 'Zone Supervisor';
+      priorityScore = 60;
+    }
+    else {
+      action = 'Monitor Worker Conditions';
+      owner = 'Zone Supervisor';
+      priorityScore = 35;
+    }
+
+    if (workers >= 100) {
+      priorityScore += 3;
+    }
+    else if (workers >= 50) {
+      priorityScore += 2;
+    }
+
+    priorityScore = Math.min(priorityScore, 99);
+
+    const coolingUnits = Number(
+      zone.cooling_units ?? zone.coolingUnits ?? 0
+    );
+
+    const coolingUnitsNeeded = Number(
+      zone.cooling_units_needed ??
+      zone.coolingUnitsNeeded ??
+      (riskClass === 'critical' ? 3 : 0)
+    );
+
+    /*
+      Find the most recent audit record belonging
+      to this zone/action.
+    */
+    const matchingAudit = auditRecords.find(record => {
+
+      const sameZone =
+        record.zone_id != null &&
+        String(record.zone_id) === String(zone.id);
+
+      const sameZoneName =
+        record.zone_name &&
+        String(record.zone_name).trim().toLowerCase() ===
+        String(zone.name ?? '').trim().toLowerCase();
+
+      const sameAction =
+        record.action &&
+        String(record.action).trim().toLowerCase() ===
+        String(action).trim().toLowerCase();
+
+      return (sameZone || sameZoneName) && sameAction;
+    });
+
+    /*
+      If an audit record exists, this action is verified.
+    */
+    let status = 'Pending';
+    let completed = null;
+    let auditId = null;
+
+    if (matchingAudit) {
+      status = 'Verified';
+      completed =
+        matchingAudit.completed_at ||
+        matchingAudit.created_at ||
+        null;
+
+      auditId =
+        matchingAudit.audit_id ||
+        matchingAudit.id ||
+        null;
+    }
+    else {
+      /*
+        Otherwise use the status stored in zones.
+      */
+      const rawStatus =
+        String(zone.status ?? '').toLowerCase();
+
+      if (rawStatus === 'overdue') {
+        status = 'Overdue';
+      }
+      else if (rawStatus === 'verified') {
+        status = 'Verified';
+      }
+    }
+
+    return {
+      id: index + 1,
+      zoneId: zone.id,
+
+      time: makeTime(0),
+
+      zone: zone.name ?? `Zone ${zone.id}`,
+
+      risk:
+        risk === 'Medium'
+          ? 'Moderate'
+          : risk,
+
+      riskClass,
+
+      action,
+      owner,
+      status,
+
+      heatIndex:
+        `${heatIndex.toFixed(1)}°C`,
+
+      workers,
+
+      duration:
+        `${exposureHours} hrs`,
+
+      recommended:
+        makeTime(0),
+
+      due:
+        status === 'Overdue'
+          ? makeTime(5)
+          : makeTime(-30),
+
+      completed:
+        completed
+          ? formatAuditTime(completed)
+          : null,
+
+      auditId,
+
+      priorityScore,
+
+      coolingUnits,
+      coolingUnitsNeeded,
+
+      resource,
+
+      reasoning:
+        `${zone.name ?? `Zone ${zone.id}`} has a heat index of ${heatIndex.toFixed(1)}°C with ${workers} workers exposed for ${exposureHours} hours. HeatShield prioritizes this intervention based on heat risk, workforce exposure, and operational conditions.`
+    };
+  });
+}
+/* ============================================================
+   RENDER ALL
+   ============================================================ */
+async function renderAll() {
+  renderMetrics();
+  renderTable();
+  await renderAuditActivity();
+}
+
+loadZonesFromBackend().then(zones => {
+  if (zones.length > 0) {
+    actions = generateActionsFromZones(zones);
+    console.log('🔥 GENERATED SAFETY ACTIONS:', actions);
+  }
+  function openAuditRecord(auditId) {
+  const auditRecords = window.currentAuditRecords || [];
+  const record = auditRecords.find(r => r.audit_id === auditId);
+
+  if (!record) {
+    showToast('Audit Record', 'Audit record details could not be loaded.');
+    return;
+  }
+
+  document.getElementById('drawerTitle').textContent =
+    record.zone_name || 'Audit Record';
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fa-solid fa-file-shield"></i> Audit Record
+      </div>
+
+      <div class="drawer-grid">
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Audit ID</div>
+          <div class="drawer-grid-value">${record.audit_id || '—'}</div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Status</div>
+          <div class="drawer-grid-value">${record.status || '—'}</div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Zone</div>
+          <div class="drawer-grid-value">${record.zone_name || '—'}</div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Owner</div>
+          <div class="drawer-grid-value">${record.owner || '—'}</div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Completed</div>
+          <div class="drawer-grid-value">
+            ${record.completed_at
+              ? new Date(record.completed_at).toLocaleString()
+              : '—'}
+          </div>
+        </div>
+
+        <div class="drawer-grid-item">
+          <div class="drawer-grid-label">Priority Score</div>
+          <div class="drawer-grid-value">${record.priority_score ?? '—'}/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fa-solid fa-bolt"></i> Safety Action
+      </div>
+      <div style="font-size:15px;font-weight:700;color:var(--navy);">
+        ${record.action || '—'}
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i class="fa-solid fa-brain"></i> AI Reasoning
+      </div>
+      <div class="drawer-reasoning">
+        ${record.reasoning || 'No reasoning recorded.'}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('drawerFooter').innerHTML = `
+    <div class="drawer-footer-info">
+      <i class="fa-solid fa-file-shield"></i>
+      ${record.audit_id || 'Audit Record'}
+    </div>
+
+    <button class="btn btn-ghost"
+      onclick="showToast('Evidence','Attachment dialog opened.')">
+      <i class="fa-solid fa-paperclip"></i>
+      Attach Evidence
+    </button>
+
+    <button class="btn btn-ghost"
+      onclick="showToast('Note','Note added to audit record.')">
+      <i class="fa-solid fa-pen"></i>
+      Add Note
+    </button>
+  `;
+
+  document.getElementById('drawerBackdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+  renderAll();
+  updateCriticalBanner();
+});
+</script>
+</body>
+</html>

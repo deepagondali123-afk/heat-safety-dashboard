@@ -1,0 +1,3158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resource Allocation · HeatShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F5FA;
+  --surface:#FFFFFF;
+  --surface-2:#FAFAFE;
+  --border:#E5E7F0;
+  --border-strong:#D1D5E8;
+  --text-1:#1F2235;
+  --text-2:#4A4F6A;
+  --text-3:#7A809A;
+  --text-4:#A0A5BD;
+  --sidebar:#ECE9F8;
+  --sidebar-border:#D9D3EF;
+  --sidebar-active:#FFFFFF;
+  --sidebar-text:#5B4B8A;
+  --sidebar-text-muted:#8579B0;
+  --sidebar-hover-bg:rgba(124,58,237,0.08);
+  --sidebar-hover-text:#2D1B5E;
+  --sidebar-ai:#7C3AED;
+  --primary:#2563EB;
+  --primary-600:#1D4ED8;
+  --primary-50:#EFF4FF;
+  --primary-100:#DBE7FE;
+  --critical:#DC2626;
+  --critical-bg:#FEF2F2;
+  --critical-border:#FECACA;
+  --critical-tint:#FEF6F6;
+  --high:#EA580C;
+  --high-bg:#FFF7ED;
+  --high-border:#FED7AA;
+  --moderate:#CA8A04;
+  --moderate-bg:#FEFCE8;
+  --safe:#059669;
+  --safe-bg:#ECFDF5;
+  --safe-border:#A7F3D0;
+  --safe-mint:#D7F0E2;
+  --ai:#7C3AED;
+  --ai-bg:#F5F3FF;
+  --ai-border:#DDD6FE;
+  --warning:#D97706;
+  --warning-bg:#FFFBEB;
+  --warning-border:#FDE68A;
+  --shadow-sm:0 1px 2px rgba(31,34,53,0.04), 0 1px 3px rgba(31,34,53,0.05);
+  --shadow-md:0 4px 6px -1px rgba(31,34,53,0.05), 0 2px 4px -2px rgba(31,34,53,0.04);
+  --shadow-lg:0 10px 25px -5px rgba(31,34,53,0.08), 0 8px 10px -6px rgba(31,34,53,0.05);
+  --shadow-xl:0 20px 40px -12px rgba(31,34,53,0.12), 0 10px 20px -8px rgba(31,34,53,0.06);
+  --shadow-glow:0 0 0 1px rgba(124,58,237,0.05), 0 8px 30px -6px rgba(124,58,237,0.18);
+  --radius-sm:8px;
+  --radius-md:12px;
+  --radius-lg:16px;
+  --radius-xl:20px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);
+  color:var(--text-1);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(167,139,250,0.12), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 95% 100%, rgba(96,165,250,0.10), transparent 65%),
+    radial-gradient(ellipse 50% 35% at 50% 50%, rgba(196,181,253,0.06), transparent 70%);
+}
+
+/* SIDEBAR */
+.sidebar{
+  position:fixed;
+  top:0;left:0;bottom:0;
+  width:260px;
+  background:var(--sidebar);
+  border-right:1px solid var(--sidebar-border);
+  display:flex;
+  flex-direction:column;
+  z-index:40;
+  transition:transform 0.3s ease;
+}
+.sidebar-brand{
+  padding:24px 22px 20px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand-mark{
+  width:38px;height:38px;
+  border-radius:11px;
+  background:linear-gradient(135deg,#7C3AED 0%,#4F46E5 100%);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  font-size:18px;
+  box-shadow:0 4px 12px rgba(124,58,237,0.35);
+  position:relative;
+}
+.brand-mark::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:11px;
+  background:radial-gradient(circle at 30% 25%,rgba(255,255,255,0.35),transparent 55%);
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;}
+.brand-name{
+  font-weight:800;
+  font-size:15px;
+  letter-spacing:0.08em;
+  color:#2D1B5E;
+}
+.brand-tag{
+  font-size:10px;
+  color:var(--sidebar-text-muted);
+  font-weight:500;
+  letter-spacing:0.04em;
+  margin-top:2px;
+}
+
+.sidebar-section{
+  padding:8px 14px 4px;
+  margin-top:8px;
+}
+.sidebar-label{
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--sidebar-text-muted);
+  padding:0 10px 6px;
+}
+
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  border-radius:10px;
+  color:var(--sidebar-text);
+  font-size:13.5px;
+  font-weight:500;
+  text-decoration:none;
+  margin:2px 6px;
+  transition:background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  position:relative;
+}
+.nav-item i{
+  width:18px;
+  font-size:14px;
+  text-align:center;
+  color:var(--sidebar-text-muted);
+  transition:color 0.18s ease;
+}
+.nav-item:hover{
+  background:var(--sidebar-hover-bg);
+  color:var(--sidebar-hover-text);
+}
+.nav-item:hover i{color:var(--sidebar-ai);}
+.nav-item.active{
+  background:var(--sidebar-active);
+  color:var(--sidebar-hover-text);
+  font-weight:600;
+  box-shadow:0 2px 8px rgba(31,34,53,0.06), 0 1px 2px rgba(31,34,53,0.04);
+}
+.nav-item.active i{color:var(--primary);}
+.nav-item.active::before{
+  content:"";
+  position:absolute;
+  left:-6px;
+  top:8px;bottom:8px;
+  width:3px;
+  border-radius:0 3px 3px 0;
+  background:var(--primary);
+}
+
+.sidebar-footer{
+  margin-top:auto;
+  padding:14px;
+}
+.user-card{
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(217,211,239,0.7);
+  border-radius:14px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  box-shadow:0 2px 6px rgba(91,75,138,0.06);
+}
+.user-avatar{
+  width:38px;height:38px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#A78BFA,#6366F1);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;
+  font-size:13px;
+  flex-shrink:0;
+  box-shadow:0 2px 8px rgba(99,102,241,0.3);
+}
+.user-info{flex:1;min-width:0;}
+.user-name{
+  font-size:13px;
+  font-weight:600;
+  color:#2D1B5E;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.user-role{
+  font-size:11px;
+  color:var(--sidebar-text-muted);
+  font-weight:500;
+}
+
+/* MAIN */
+.main{
+  margin-left:260px;
+  min-height:100vh;
+  position:relative;
+  z-index:1;
+}
+.container{
+  max-width:1320px;
+  margin:0 auto;
+  padding:28px 32px 60px;
+}
+
+/* HEADER */
+.page-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:28px;
+  flex-wrap:wrap;
+}
+.page-title{
+  font-size:26px;
+  font-weight:800;
+  letter-spacing:-0.02em;
+  color:var(--text-1);
+  line-height:1.15;
+}
+.page-subtitle{
+  font-size:13.5px;
+  color:var(--text-2);
+  margin-top:5px;
+  max-width:640px;
+}
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.status-pill{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 13px 7px 11px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-2);
+  box-shadow:var(--shadow-sm);
+}
+.status-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--safe);
+  position:relative;
+  box-shadow:0 0 0 0 rgba(5,150,105,0.5);
+  animation:statusPulse 2.4s ease-out infinite;
+}
+@keyframes statusPulse{
+  0%{box-shadow:0 0 0 0 rgba(5,150,105,0.55);}
+  70%{box-shadow:0 0 0 8px rgba(5,150,105,0);}
+  100%{box-shadow:0 0 0 0 rgba(5,150,105,0);}
+}
+.updated-ago{
+  font-size:11px;
+  color:var(--text-4);
+  font-weight:500;
+  margin-left:4px;
+}
+.icon-btn{
+  width:38px;height:38px;
+  border-radius:10px;
+  background:#fff;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);
+  cursor:pointer;
+  position:relative;
+  transition:all 0.18s ease;
+  box-shadow:var(--shadow-sm);
+}
+.icon-btn:hover{
+  border-color:var(--primary);
+  color:var(--primary);
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-md);
+}
+.icon-btn .notif-badge{
+  position:absolute;
+  top:-3px;right:-3px;
+  width:16px;height:16px;
+  background:var(--critical);
+  color:#fff;
+  font-size:9px;
+  font-weight:700;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;
+}
+.header-avatar{
+  width:38px;height:38px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#60A5FA,#3B82F6);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  font-weight:600;
+  font-size:13px;
+  border:2px solid #fff;
+  box-shadow:var(--shadow-md);
+  cursor:pointer;
+}
+
+/* SECTIONS */
+.section{margin-bottom:24px;}
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.section-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text-3);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-title::before{
+  content:"";
+  width:3px;height:14px;
+  background:var(--primary);
+  border-radius:2px;
+}
+.context-line{
+  font-size:12.5px;
+  color:var(--text-2);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.context-line i{color:var(--warning);font-size:12px;}
+
+/* CARDS */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);
+  transition:transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.card-pad{padding:22px;}
+
+/* AVAILABLE RESOURCES */
+.resources-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+}
+.resource-card{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:22px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  overflow:hidden;
+  transition:transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.resource-card::before{
+  content:"";
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:3px;
+  background:linear-gradient(180deg,var(--primary),#60A5FA);
+}
+.resource-card::after{
+  content:"";
+  position:absolute;
+  right:-30px;top:-30px;
+  width:120px;height:120px;
+  background:radial-gradient(circle,var(--primary-50),transparent 70%);
+  opacity:0.7;
+  pointer-events:none;
+}
+.resource-card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-lg);
+  border-color:var(--primary-100);
+}
+.resource-icon{
+  width:54px;height:54px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#EFF6FF,#DBEAFE);
+  border:1px solid var(--primary-100);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  flex-shrink:0;
+  position:relative;
+  z-index:1;
+}
+.resource-info{flex:1;min-width:0;position:relative;z-index:1;}
+.resource-type{
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-3);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+.resource-amount{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  margin:2px 0 2px;
+}
+.resource-number{
+  font-size:38px;
+  font-weight:800;
+  color:var(--primary-600);
+  line-height:1;
+  letter-spacing:-0.02em;
+  transition:all 0.3s ease;
+}
+.resource-suffix{
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-3);
+}
+.resource-deployed-line{
+  font-size:12px;
+  color:var(--text-3);
+  margin-bottom:4px;
+}
+.resource-deployed-line span{
+  font-weight:700;
+  color:var(--text-2);
+}
+.resource-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--safe);
+  background:var(--safe-bg);
+  padding:3px 9px;
+  border-radius:999px;
+  border:1px solid var(--safe-border);
+  transition:all 0.3s ease;
+}
+.resource-status::before{
+  content:"";
+  width:6px;height:6px;
+  background:var(--safe);
+  border-radius:50%;
+  transition:background 0.3s ease;
+}
+.resource-status.low{
+  color:var(--warning);
+  background:var(--warning-bg);
+  border-color:var(--warning-border);
+}
+.resource-status.low::before{background:var(--warning);}
+.resource-status.empty{
+  color:var(--critical);
+  background:var(--critical-bg);
+  border-color:var(--critical-border);
+}
+.resource-status.empty::before{background:var(--critical);}
+
+/* AI INSIGHT */
+.ai-insight-card{
+  background:var(--surface);
+  border:1px solid var(--ai-border);
+  border-radius:var(--radius-lg);
+  padding:18px 22px;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  box-shadow:0 0 0 1px rgba(124,58,237,0.04), 0 4px 16px -4px rgba(124,58,237,0.1);
+  transition:all 0.3s ease;
+}
+.ai-insight-icon{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#7C3AED,#4F46E5);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+  flex-shrink:0;
+  box-shadow:0 3px 10px rgba(124,58,237,0.25);
+}
+.ai-insight-body{flex:1;min-width:0;}
+.ai-insight-label{
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--ai);
+  margin-bottom:4px;
+}
+.ai-insight-text{
+  font-size:13.5px;
+  color:var(--text-2);
+  line-height:1.55;
+  transition:opacity 0.3s ease;
+}
+.ai-insight-text strong{color:var(--text-1);font-weight:700;}
+.ai-insight-link{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--ai);
+  margin-top:6px;
+  cursor:pointer;
+  text-decoration:none;
+  transition:gap 0.2s ease, opacity 0.2s ease;
+}
+.ai-insight-link:hover{
+  gap:8px;
+  opacity:0.85;
+}
+
+/* PRIORITY RANKING */
+.priority-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+.priority-card{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:22px;
+  transition:transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  overflow:hidden;
+}
+.priority-card.rank-1{
+  border-color:var(--critical-border);
+  background:linear-gradient(180deg,#FFFCFC 0%,#FFFFFF 60%);
+  box-shadow:0 8px 24px -8px rgba(220,38,38,0.12), 0 2px 6px rgba(31,34,53,0.04);
+}
+.priority-card.rank-1::before{
+  content:"";
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:4px;
+  background:linear-gradient(180deg,var(--critical),#F87171);
+}
+.priority-card:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-lg);
+}
+.priority-card.rank-1:hover{
+  box-shadow:0 16px 36px -10px rgba(220,38,38,0.18), 0 4px 10px rgba(31,34,53,0.05);
+}
+.priority-card.mitigated{
+  border-color:var(--safe-border) !important;
+  background:linear-gradient(180deg,#F7FDF9 0%,#FFFFFF 60%) !important;
+  box-shadow:0 8px 24px -8px rgba(5,150,105,0.1), 0 2px 6px rgba(31,34,53,0.04) !important;
+}
+.priority-card.mitigated::before{
+  background:linear-gradient(180deg,var(--safe),#34D399) !important;
+}
+
+.rank-badge{
+  position:absolute;
+  top:18px;right:18px;
+  width:46px;height:46px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:16px;
+  letter-spacing:-0.02em;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--text-3);
+}
+.priority-card.rank-1 .rank-badge{
+  background:linear-gradient(135deg,#FEF2F2,#FEE2E2);
+  border:1px solid var(--critical-border);
+  color:var(--critical);
+  box-shadow:0 4px 12px rgba(220,38,38,0.12);
+}
+.priority-card.rank-2 .rank-badge{
+  background:linear-gradient(135deg,#FEF2F2,#FEE2E2);
+  border:1px solid var(--critical-border);
+  color:var(--critical);
+}
+.priority-card.rank-3 .rank-badge{
+  background:linear-gradient(135deg,#FFF7ED,#FFEDD5);
+  border:1px solid var(--high-border);
+  color:var(--high);
+}
+
+.recommended-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--critical);
+  background:var(--critical-bg);
+  border:1px solid var(--critical-border);
+  padding:3px 10px;
+  border-radius:999px;
+  margin-top:8px;
+  transition:all 0.3s ease;
+}
+.recommended-badge.active-mitigation{
+  color:var(--safe);
+  background:var(--safe-bg);
+  border-color:var(--safe-border);
+}
+
+.zone-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+}
+.zone-dot{
+  width:10px;height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+  box-shadow:0 0 0 3px rgba(255,255,255,1), 0 0 0 4px currentColor;
+  transition:all 0.3s ease;
+}
+.zone-dot.critical{background:var(--critical);color:rgba(220,38,38,0.2);}
+.zone-dot.high{background:var(--high);color:rgba(234,88,12,0.2);}
+.zone-dot.safe{background:var(--safe);color:rgba(5,150,105,0.2);}
+.zone-name{
+  font-size:18px;
+  font-weight:800;
+  color:var(--text-1);
+  letter-spacing:-0.01em;
+}
+.risk-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:10.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  padding:3px 9px;
+  border-radius:999px;
+  margin-top:6px;
+  transition:all 0.3s ease;
+}
+.risk-badge.critical{
+  color:var(--critical);
+  background:var(--critical-bg);
+  border:1px solid var(--critical-border);
+}
+.risk-badge.high{
+  color:var(--high);
+  background:var(--high-bg);
+  border:1px solid var(--high-border);
+}
+.risk-badge.mitigated-badge{
+  color:var(--safe);
+  background:var(--safe-bg);
+  border:1px solid var(--safe-border);
+}
+
+.mitigation-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--safe);
+  margin-top:8px;
+  opacity:0;
+  height:0;
+  overflow:hidden;
+  transition:all 0.4s ease;
+}
+.mitigation-status.visible{
+  opacity:1;
+  height:auto;
+  margin-top:8px;
+}
+.mitigation-status::before{
+  content:"";
+  width:6px;height:6px;
+  background:var(--safe);
+  border-radius:50%;
+}
+
+.priority-score-block{
+  margin:18px 0 10px;
+}
+.score-label{
+  font-size:11px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--text-3);
+  margin-bottom:4px;
+}
+.score-value{
+  display:flex;
+  align-items:baseline;
+  gap:4px;
+}
+.score-number{
+  font-size:42px;
+  font-weight:800;
+  color:var(--text-1);
+  line-height:1;
+  letter-spacing:-0.03em;
+}
+.score-divider{font-size:18px;color:var(--text-3);font-weight:600;}
+.score-max{font-size:18px;color:var(--text-3);font-weight:600;}
+
+.priority-bar-track{
+  height:8px;
+  background:var(--surface-2);
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:10px;
+  border:1px solid var(--border);
+}
+.priority-bar-fill{
+  height:100%;
+  border-radius:999px;
+  width:0;
+  transition:width 1.4s cubic-bezier(0.16,1,0.3,1);
+  position:relative;
+}
+.priority-bar-fill.critical{
+  background:linear-gradient(90deg,#DC2626,#EF4444);
+  box-shadow:0 0 0 1px rgba(220,38,38,0.1);
+}
+.priority-bar-fill.high{
+  background:linear-gradient(90deg,#EA580C,#F97316);
+  box-shadow:0 0 0 1px rgba(234,88,12,0.1);
+}
+.priority-bar-fill::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);
+  animation:shimmer 2.5s linear infinite;
+}
+@keyframes shimmer{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(100%);}
+}
+
+.zone-meta{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin-top:18px;
+  padding-top:16px;
+  border-top:1px dashed var(--border);
+}
+.meta-item{flex:1;}
+.meta-label{
+  font-size:10.5px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--text-3);
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.meta-label i{font-size:10px;}
+.meta-value{
+  font-size:15px;
+  font-weight:700;
+  color:var(--text-1);
+  margin-top:3px;
+}
+
+.ai-rec-line{
+  font-size:11.5px;
+  color:var(--text-3);
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px dashed var(--border);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.ai-rec-label{
+  font-weight:700;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--ai);
+}
+
+.deploy-btn{
+  width:100%;
+  margin-top:14px;
+  padding:12px 16px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:11px;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.04em;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.3s ease;
+  box-shadow:0 4px 12px rgba(37,99,235,0.25);
+  position:relative;
+  overflow:hidden;
+}
+.deploy-btn:hover:not(:disabled):not(.deployed){
+  background:var(--primary-600);
+  transform:translateY(-1px);
+  box-shadow:0 8px 18px rgba(37,99,235,0.32);
+}
+.deploy-btn:active:not(:disabled):not(.deployed){
+  transform:translateY(0);
+  box-shadow:0 2px 6px rgba(37,99,235,0.2);
+}
+.deploy-btn.deployed{
+  background:var(--safe-bg);
+  color:var(--safe);
+  border:1px solid var(--safe-border);
+  box-shadow:none;
+  cursor:default;
+}
+.deploy-btn:disabled{
+  background:var(--surface-2);
+  color:var(--text-4);
+  border:1px solid var(--border);
+  box-shadow:none;
+  cursor:not-allowed;
+}
+.deploy-btn:disabled:hover{transform:none;}
+.deploy-btn .btn-spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+.deploy-btn.deployed .btn-spinner{display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.deploy-btn-secondary{
+  width:100%;
+  margin-top:14px;
+  padding:12px 16px;
+  background:#fff;
+  color:var(--primary);
+  border:1px solid var(--primary-100);
+  border-radius:11px;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.04em;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  box-shadow:var(--shadow-sm);
+}
+.deploy-btn-secondary:hover{
+  background:var(--primary-50);
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-md);
+}
+.deploy-btn-secondary:active{transform:translateY(0);}
+.deploy-btn-secondary.confirmed{
+  background:var(--safe-bg);
+  color:var(--safe);
+  border-color:var(--safe-border);
+  box-shadow:none;
+  cursor:default;
+}
+.deploy-btn-secondary.confirmed:hover{transform:none;box-shadow:none;background:var(--safe-bg);}
+
+.no-resource-note{
+  margin-top:14px;
+  padding:10px 12px;
+  background:var(--critical-bg);
+  border:1px solid var(--critical-border);
+  border-radius:10px;
+  font-size:12px;
+  color:var(--critical);
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.no-resource-note span{
+  color:var(--text-2);
+  font-weight:500;
+}
+
+/* PROTECTION IMPACT */
+.protection-impact{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:22px;
+  box-shadow:var(--shadow-sm);
+  transition:all 0.4s ease;
+}
+.protection-impact.success{
+  border-color:var(--safe-border);
+  background:linear-gradient(180deg,#F7FDF9 0%,#FFFFFF 100%);
+}
+.protection-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+}
+.protection-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text-3);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.protection-title::before{
+  content:"";
+  width:3px;height:14px;
+  background:var(--primary);
+  border-radius:2px;
+  transition:background 0.3s ease;
+}
+.protection-impact.success .protection-title::before{
+  background:var(--safe);
+}
+.protection-state-label{
+  font-size:11px;
+  font-weight:700;
+  color:var(--text-4);
+  transition:color 0.3s ease;
+}
+.protection-impact.success .protection-state-label{
+  color:var(--safe);
+}
+.protection-body{
+  display:flex;
+  align-items:center;
+  gap:24px;
+}
+.protection-visual{
+  flex-shrink:0;
+}
+.protection-big-number{
+  font-size:48px;
+  font-weight:900;
+  color:var(--text-1);
+  line-height:1;
+  letter-spacing:-0.03em;
+  transition:color 0.3s ease;
+}
+.protection-impact.success .protection-big-number{
+  color:var(--safe);
+}
+.protection-label{
+  font-size:13px;
+  color:var(--text-3);
+  font-weight:500;
+  margin-top:2px;
+  transition:color 0.3s ease;
+}
+.protection-impact.success .protection-label{
+  color:var(--safe);
+  font-weight:600;
+}
+.protection-flow{
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.protection-flow-step{
+  padding:8px 14px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-2);
+  transition:all 0.3s ease;
+  white-space:nowrap;
+}
+.protection-flow-step.active{
+  background:var(--safe-mint);
+  border-color:var(--safe-border);
+  color:var(--safe);
+}
+.protection-flow-arrow{
+  color:var(--text-4);
+  font-size:14px;
+}
+
+/* RESOURCE EFFICIENCY */
+.resource-efficiency{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:18px 22px;
+  box-shadow:var(--shadow-sm);
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.efficiency-icon{
+  width:40px;height:40px;
+  border-radius:11px;
+  background:linear-gradient(135deg,var(--primary-50),#DBEAFE);
+  border:1px solid var(--primary-100);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--primary);
+  font-size:16px;
+  flex-shrink:0;
+}
+.efficiency-info{flex:1;}
+.efficiency-label{
+  font-size:10.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-3);
+}
+.efficiency-flow{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:4px;
+  font-size:14px;
+  font-weight:700;
+  color:var(--text-1);
+}
+.efficiency-flow-arrow{
+  color:var(--text-4);
+  font-size:13px;
+}
+
+/* RESOURCE COVERAGE */
+.resource-coverage{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:18px 22px;
+  box-shadow:var(--shadow-sm);
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
+.coverage-ring-wrap{
+  position:relative;
+  width:56px;height:56px;
+  flex-shrink:0;
+}
+.coverage-ring-wrap svg{
+  width:56px;height:56px;
+  transform:rotate(-90deg);
+}
+.coverage-ring-bg{
+  fill:none;
+  stroke:var(--surface-2);
+  stroke-width:6;
+}
+.coverage-ring-fill{
+  fill:none;
+  stroke:var(--primary);
+  stroke-width:6;
+  stroke-linecap:round;
+  stroke-dasharray:138.23;
+  stroke-dashoffset:138.23;
+  transition:stroke-dashoffset 1.2s cubic-bezier(0.16,1,0.3,1), stroke 0.3s ease;
+}
+.coverage-ring-text{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  font-weight:800;
+  color:var(--text-1);
+}
+.coverage-info{flex:1;}
+.coverage-label{
+  font-size:10.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-3);
+}
+.coverage-desc{
+  font-size:12.5px;
+  color:var(--text-2);
+  margin-top:3px;
+  line-height:1.45;
+}
+
+/* AI EXPLANATION */
+.ai-card{
+  background:var(--surface);
+  border:1px solid var(--ai-border);
+  border-radius:var(--radius-xl);
+  padding:28px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:var(--shadow-glow);
+}
+.ai-card::before{
+  content:"";
+  position:absolute;
+  top:-50px;right:-50px;
+  width:280px;height:280px;
+  background:radial-gradient(circle,rgba(124,58,237,0.08),transparent 65%);
+  pointer-events:none;
+}
+.ai-card::after{
+  content:"";
+  position:absolute;
+  bottom:-60px;left:-30px;
+  width:220px;height:220px;
+  background:radial-gradient(circle,rgba(96,165,250,0.08),transparent 65%);
+  pointer-events:none;
+}
+.ai-card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:22px;
+  position:relative;
+  z-index:1;
+}
+.ai-card-title-block{display:flex;align-items:center;gap:12px;}
+.ai-icon-wrap{
+  width:46px;height:46px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#7C3AED,#4F46E5);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  box-shadow:0 4px 14px rgba(124,58,237,0.3);
+  position:relative;
+}
+.ai-icon-wrap::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:12px;
+  background:radial-gradient(circle at 30% 25%,rgba(255,255,255,0.35),transparent 55%);
+}
+.ai-label{
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--ai);
+}
+.ai-title{
+  font-size:22px;
+  font-weight:800;
+  color:var(--text-1);
+  letter-spacing:-0.02em;
+  margin-top:2px;
+}
+.ai-confidence{
+  text-align:right;
+  font-size:11px;
+  color:var(--text-3);
+  font-weight:600;
+}
+.ai-confidence strong{
+  display:block;
+  font-size:18px;
+  color:var(--ai);
+  font-weight:800;
+}
+
+.ai-explanation-text{
+  font-size:15px;
+  color:var(--text-1);
+  line-height:1.6;
+  padding:16px 18px;
+  background:var(--ai-bg);
+  border:1px solid var(--ai-border);
+  border-radius:12px;
+  border-left:3px solid var(--ai);
+  position:relative;
+  z-index:1;
+  margin-bottom:24px;
+}
+.ai-explanation-text strong{color:var(--ai);}
+
+.factors-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:26px;
+  position:relative;
+  z-index:1;
+}
+.factor-card{
+  padding:16px 16px 14px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  position:relative;
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
+}
+.factor-card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-md);
+}
+.factor-card.critical{border-color:var(--critical-border);background:linear-gradient(180deg,#FFFBFB,var(--surface-2));}
+.factor-card.high{border-color:var(--high-border);background:linear-gradient(180deg,#FFFAF5,var(--surface-2));}
+.factor-card.info{border-color:var(--ai-border);background:linear-gradient(180deg,#FAF7FF,var(--surface-2));}
+.factor-icon{
+  width:34px;height:34px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+  margin-bottom:10px;
+}
+.factor-card.critical .factor-icon{background:var(--critical-bg);color:var(--critical);}
+.factor-card.high .factor-icon{background:var(--high-bg);color:var(--high);}
+.factor-card.info .factor-icon{background:var(--ai-bg);color:var(--ai);}
+.factor-label{
+  font-size:10.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--text-3);
+}
+.factor-value{
+  font-size:18px;
+  font-weight:800;
+  color:var(--text-1);
+  margin-top:3px;
+  letter-spacing:-0.01em;
+}
+.factor-detail{
+  font-size:12px;
+  color:var(--text-2);
+  margin-top:3px;
+}
+
+/* DECISION DIAGRAM */
+.diagram{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px;
+  position:relative;
+  z-index:1;
+}
+.diagram-title{
+  font-size:10.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-3);
+  margin-bottom:18px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.diagram-title i{color:var(--ai);}
+.diagram-flow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.diagram-node{
+  flex:1;
+  min-width:140px;
+  max-width:200px;
+  padding:14px 12px;
+  border-radius:12px;
+  text-align:center;
+  border:1px solid;
+  position:relative;
+}
+.diagram-node.heat{
+  background:var(--critical-bg);
+  border-color:var(--critical-border);
+  color:var(--critical);
+}
+.diagram-node.exposure{
+  background:var(--high-bg);
+  border-color:var(--high-border);
+  color:var(--high);
+}
+.diagram-node.duration{
+  background:var(--high-bg);
+  border-color:var(--high-border);
+  color:var(--high);
+}
+.diagram-node.score{
+  background:var(--ai-bg);
+  border-color:var(--ai-border);
+  color:var(--ai);
+  padding:18px 12px;
+}
+.diagram-node.allocation{
+  background:var(--primary-50);
+  border-color:var(--primary-100);
+  color:var(--primary-600);
+}
+.diagram-node-title{
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.diagram-node-value{
+  font-size:16px;
+  font-weight:800;
+  margin-top:4px;
+}
+.diagram-node.score .diagram-node-value{font-size:24px;}
+.diagram-op{
+  font-size:18px;
+  font-weight:700;
+  color:var(--text-3);
+  padding:0 4px;
+}
+.diagram-arrow{
+  width:100%;
+  text-align:center;
+  font-size:18px;
+  color:var(--text-3);
+  margin:8px 0;
+}
+
+/* AI DECISION VISUALIZATION */
+.decision-viz{
+  margin-top:24px;
+  padding-top:24px;
+  border-top:1px solid var(--border);
+  position:relative;
+  z-index:1;
+}
+.viz-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.viz-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text-3);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.viz-title i{color:var(--ai);}
+.viz-note{
+  font-size:11px;
+  color:var(--text-3);
+  font-style:italic;
+}
+.factor-row{
+  display:grid;
+  grid-template-columns:180px 1fr 90px;
+  align-items:center;
+  gap:16px;
+  padding:10px 0;
+}
+.factor-row-label{
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-1);
+}
+.factor-row-bar{
+  height:10px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:999px;
+  overflow:hidden;
+  position:relative;
+}
+.factor-row-fill{
+  height:100%;
+  border-radius:999px;
+  width:0;
+  transition:width 1.4s cubic-bezier(0.16,1,0.3,1);
+}
+.factor-row-fill.critical{background:linear-gradient(90deg,#DC2626,#EF4444);}
+.factor-row-fill.high{background:linear-gradient(90deg,#EA580C,#F97316);}
+.factor-row-fill.ai{background:linear-gradient(90deg,#7C3AED,#6366F1);}
+.factor-row-status{
+  font-size:11.5px;
+  font-weight:700;
+  text-align:right;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.factor-row-status.critical{color:var(--critical);}
+.factor-row-status.high{color:var(--high);}
+.factor-row-status.ai{color:var(--ai);}
+
+.weight-label{
+  font-size:11px;
+  color:var(--text-3);
+  font-weight:600;
+  margin-left:8px;
+}
+
+.final-score-row{
+  margin-top:14px;
+  padding:14px 18px;
+  background:linear-gradient(135deg,var(--ai-bg),var(--primary-50));
+  border:1px solid var(--ai-border);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.final-score-label{
+  font-size:13px;
+  font-weight:700;
+  color:var(--text-2);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.final-score-label i{color:var(--ai);}
+.final-score-arrow{
+  font-size:18px;
+  color:var(--text-3);
+}
+.final-score-value{
+  font-size:30px;
+  font-weight:900;
+  color:var(--ai);
+  letter-spacing:-0.02em;
+}
+
+/* AUDIT TRAIL */
+.audit-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:22px;
+  box-shadow:var(--shadow-sm);
+}
+.audit-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+}
+.audit-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text-3);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.audit-title::before{
+  content:"";
+  width:3px;height:14px;
+  background:var(--safe);
+  border-radius:2px;
+}
+.audit-action-recorded{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--safe);
+  background:var(--safe-bg);
+  border:1px solid var(--safe-border);
+  padding:3px 10px;
+  border-radius:999px;
+  opacity:0;
+  transition:opacity 0.4s ease;
+}
+.audit-action-recorded.visible{opacity:1;}
+.audit-action-recorded::before{
+  content:"";
+  width:6px;height:6px;
+  background:var(--safe);
+  border-radius:50%;
+}
+.audit-link{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--primary);
+  text-decoration:none;
+  margin-top:14px;
+  transition:gap 0.2s ease, opacity 0.2s ease;
+  opacity:0;
+  height:0;
+  overflow:hidden;
+}
+.audit-link.visible{
+  opacity:1;
+  height:auto;
+  margin-top:14px;
+}
+.audit-link:hover{
+  gap:8px;
+  opacity:0.8;
+}
+
+.audit-list{
+  list-style:none;
+  position:relative;
+  padding-left:6px;
+}
+.audit-list::before{
+  content:"";
+  position:absolute;
+  left:11px;top:6px;bottom:6px;
+  width:2px;
+  background:var(--border);
+  border-radius:2px;
+  transition:height 0.3s ease;
+}
+.audit-item{
+  position:relative;
+  padding:10px 0 10px 30px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  opacity:0;
+  transform:translateX(-8px);
+  transition:opacity 0.4s ease, transform 0.4s ease;
+}
+.audit-item.visible{
+  opacity:1;
+  transform:translateX(0);
+}
+.audit-item::before{
+  content:"";
+  position:absolute;
+  left:7px;top:18px;
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--primary);
+  border:2px solid #fff;
+  box-shadow:0 0 0 1px var(--border);
+  transition:background 0.3s ease, box-shadow 0.3s ease;
+}
+.audit-item.highlight::before{
+  background:var(--safe);
+  box-shadow:0 0 0 1px var(--safe-border);
+}
+.audit-detail{
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-1);
+}
+.audit-time{
+  font-size:11px;
+  color:var(--text-3);
+  font-weight:500;
+  white-space:nowrap;
+  padding:4px 8px;
+  background:var(--surface-2);
+  border-radius:6px;
+  border:1px solid var(--border);
+}
+.audit-empty{
+  text-align:center;
+  padding:20px 12px;
+  color:var(--text-4);
+  font-size:13px;
+  font-weight:500;
+}
+
+/* TOAST */
+.toast-container{
+  position:fixed;
+  bottom:28px;right:28px;
+  z-index:200;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  pointer-events:none;
+}
+.toast{
+  background:#fff;
+  border:1px solid var(--safe-border);
+  border-left:3px solid var(--safe);
+  border-radius:12px;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 14px 30px -10px rgba(5,150,105,0.3), 0 6px 12px rgba(31,34,53,0.08);
+  transform:translateY(20px) scale(0.95);
+  opacity:0;
+  pointer-events:auto;
+  transition:transform 0.32s cubic-bezier(0.16,1,0.3,1), opacity 0.22s ease;
+  min-width:300px;
+}
+.toast.show{
+  transform:translateY(0) scale(1);
+  opacity:1;
+}
+.toast-icon{
+  width:32px;height:32px;
+  border-radius:9px;
+  background:var(--safe-bg);
+  color:var(--safe);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+  flex-shrink:0;
+}
+.toast-content{flex:1;}
+.toast-title{
+  font-size:13px;
+  font-weight:700;
+  color:var(--text-1);
+}
+.toast-message{
+  font-size:11.5px;
+  color:var(--text-2);
+  margin-top:1px;
+}
+.toast-close{
+  background:none;
+  border:none;
+  color:var(--text-4);
+  cursor:pointer;
+  font-size:14px;
+  padding:4px;
+  transition:color 0.2s ease;
+}
+.toast-close:hover{color:var(--text-2);}
+
+/* MODAL */
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(31,34,53,0.45);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.22s ease;
+  padding:20px;
+}
+.modal-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.modal{
+  background:#fff;
+  border-radius:18px;
+  width:100%;
+  max-width:440px;
+  padding:24px;
+  box-shadow:0 30px 60px -15px rgba(31,34,53,0.3);
+  transform:scale(0.92) translateY(10px);
+  transition:transform 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+.modal-backdrop.show .modal{transform:scale(1) translateY(0);}
+.modal-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:18px;
+}
+.modal-icon{
+  width:48px;height:48px;
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.modal-icon.cool{
+  background:linear-gradient(135deg,#EFF6FF,#DBEAFE);
+  border:1px solid var(--primary-100);
+  color:var(--primary);
+}
+.modal-icon.water{
+  background:linear-gradient(135deg,#ECFEFF,#CFFAFE);
+  border:1px solid #A5F3FC;
+  color:#0891B2;
+}
+.modal-icon.rotate{
+  background:linear-gradient(135deg,#FFF7ED,#FFEDD5);
+  border:1px solid var(--high-border);
+  color:var(--high);
+}
+.modal-title{
+  font-size:18px;
+  font-weight:800;
+  color:var(--text-1);
+  letter-spacing:-0.01em;
+}
+.modal-subtitle{
+  font-size:12.5px;
+  color:var(--text-2);
+  margin-top:2px;
+}
+.modal-body{
+  padding:16px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  margin-bottom:20px;
+}
+.modal-body-text{
+  font-size:13.5px;
+  color:var(--text-2);
+  line-height:1.55;
+}
+.modal-body-text strong{color:var(--text-1);font-weight:700;}
+.modal-stats{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed var(--border);
+}
+.modal-stat-label{
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--text-3);
+}
+.modal-stat-value{
+  font-size:15px;
+  font-weight:800;
+  color:var(--text-1);
+  margin-top:2px;
+}
+.modal-stat-value.critical{color:var(--critical);}
+.modal-stat-value.primary{color:var(--primary);}
+.modal-actions{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+}
+.modal-btn{
+  padding:11px 20px;
+  border-radius:10px;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.04em;
+  cursor:pointer;
+  border:1px solid transparent;
+  transition:all 0.18s ease;
+}
+.modal-btn.cancel{
+  background:#fff;
+  color:var(--text-2);
+  border-color:var(--border);
+}
+.modal-btn.cancel:hover{
+  background:var(--surface-2);
+  border-color:var(--border-strong);
+}
+.modal-btn.confirm{
+  background:var(--primary);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(37,99,235,0.25);
+}
+.modal-btn.confirm:hover{
+  background:var(--primary-600);
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(37,99,235,0.32);
+}
+.modal-btn.confirm:active{transform:translateY(0);}
+
+/* FOOTER */
+.page-footer{
+  margin-top:32px;
+  padding-top:20px;
+  border-top:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.footer-note{
+  font-size:12px;
+  color:var(--text-3);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-style:italic;
+}
+.footer-note i{color:var(--ai);font-size:13px;}
+.footer-meta{
+  font-size:11.5px;
+  color:var(--text-4);
+  font-weight:500;
+}
+
+/* ANIMATIONS */
+.fade-in{
+  animation:fadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(12px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.delay-1{animation-delay:0.05s;}
+.delay-2{animation-delay:0.1s;}
+.delay-3{animation-delay:0.15s;}
+.delay-4{animation-delay:0.2s;}
+.delay-5{animation-delay:0.25s;}
+.delay-6{animation-delay:0.3s;}
+.delay-7{animation-delay:0.35s;}
+.delay-8{animation-delay:0.4s;}
+
+/* RESPONSIVE */
+@media (max-width:1100px){
+  .container{padding:24px 22px 50px;}
+  .priority-grid{grid-template-columns:1fr 1fr;}
+  .priority-card.rank-3{grid-column:span 2;}
+  .factors-grid{grid-template-columns:1fr 1fr 1fr;}
+  .metrics-row{grid-template-columns:1fr 1fr !important;}
+}
+@media (max-width:920px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-toggle{display:flex !important;}
+  .resources-grid{grid-template-columns:1fr;}
+  .priority-grid{grid-template-columns:1fr;}
+  .priority-card.rank-3{grid-column:auto;}
+  .metrics-row{grid-template-columns:1fr !important;}
+  .factors-grid{grid-template-columns:1fr;}
+  .factor-row{grid-template-columns:130px 1fr 80px;gap:10px;}
+  .diagram-flow{flex-direction:column;}
+  .diagram-node{max-width:100%;width:100%;}
+  .diagram-op{transform:rotate(90deg);}
+  .page-title{font-size:22px;}
+  .ai-card{padding:22px 18px;}
+  .final-score-value{font-size:24px;}
+  .protection-body{flex-direction:column;align-items:flex-start;gap:16px;}
+}
+@media (max-width:520px){
+  .container{padding:18px 16px 40px;}
+  .page-header{flex-direction:column;align-items:flex-start;}
+  .header-right{width:100%;justify-content:space-between;}
+  .priority-card{padding:18px;}
+  .ai-card{padding:18px 14px;}
+  .factor-row{grid-template-columns:1fr;gap:4px;}
+  .factor-row-status{text-align:left;}
+  .toast{left:16px;right:16px;bottom:16px;min-width:0;}
+  .modal{padding:18px;}
+}
+
+.mobile-toggle{
+  display:none;
+  position:fixed;
+  top:14px;left:14px;
+  width:38px;height:38px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  align-items:center;justify-content:center;
+  cursor:pointer;
+  z-index:50;
+  box-shadow:var(--shadow-sm);
+  color:var(--text-2);
+}
+.sidebar-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(31,34,53,0.4);
+  backdrop-filter:blur(2px);
+  z-index:39;
+}
+.sidebar-overlay.show{display:block;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation">
+  <i class="fa-solid fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">HEATSHIELD</div>
+      <div class="brand-tag">AI Heat Safety</div>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Operations</div>
+    <a href="Dashboard.html" class="nav-item">
+      <i class="fa-solid fa-gauge-high"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="Dashboard.html" class="nav-item">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>Heat Map</span>
+    </a>
+    <a href="Resource.html" class="nav-item active">
+      <i class="fa-solid fa-scale-balanced"></i>
+      <span>Resource Allocation</span>
+    </a>
+    <a href="safety.html" class="nav-item">
+      <i class="fa-solid fa-clipboard-check"></i>
+      <span>Safety Actions</span>
+    </a>
+    <a href="Worker.html" class="nav-item">
+      <i class="fa-solid fa-people-group"></i>
+      <span>Worker Groups</span>
+    </a>
+    <a href="Alert.html" class="nav-item">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Alerts</span>
+    </a>
+    <a href="Incident.html" class="nav-item">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>Incident History</span>
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">System</div>
+    <a href="setting.html" class="nav-item">
+      <i class="fa-solid fa-gear"></i>
+      <span>Settings</span>
+    </a>
+    <a href="help.html" class="nav-item">
+      <i class="fa-solid fa-circle-question"></i>
+      <span>Help</span>
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">SM</div>
+      <div class="user-info">
+        <div class="user-name">Safety Manager</div>
+        <div class="user-role">Texas Operations</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="page-header fade-in">
+      <div>
+        <h1 class="page-title">Resource Allocation</h1>
+        <p class="page-subtitle">AI-powered deployment of limited safety resources based on worker exposure and heat risk.</p>
+      </div>
+      <div class="header-right">
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          System Online
+          <span class="updated-ago" id="updatedAgo">Updated 24 sec ago</span>
+        </div>
+        <button class="icon-btn" aria-label="Notifications">
+          <i class="fa-regular fa-bell"></i>
+          <span class="notif-badge">3</span>
+        </button>
+        <div class="header-avatar" title="Safety Manager">SM</div>
+      </div>
+    </header>
+
+    <!-- AVAILABLE RESOURCES -->
+    <section class="section fade-in delay-1">
+      <div class="section-head">
+        <div class="section-title">Available Resources</div>
+        <div class="context-line">
+          <i class="fa-solid fa-circle-info"></i>
+          Limited resources require AI-guided prioritization.
+        </div>
+      </div>
+      <div class="resources-grid">
+        <div class="resource-card">
+          <div class="resource-icon">❄️</div>
+          <div class="resource-info">
+            <div class="resource-type">Cooling Units</div>
+            <div class="resource-amount">
+              <span class="resource-number" id="coolingAvail">2</span>
+              <span class="resource-suffix">available</span>
+            </div>
+            <div class="resource-deployed-line"><span id="coolingDeployed">0</span> deployed</div>
+            <div class="resource-status" id="coolingStatus">Ready to deploy</div>
+          </div>
+        </div>
+        <div class="resource-card">
+          <div class="resource-icon">💧</div>
+          <div class="resource-info">
+            <div class="resource-type">Water Stations</div>
+            <div class="resource-amount">
+              <span class="resource-number" id="waterAvail">3</span>
+              <span class="resource-suffix">available</span>
+            </div>
+            <div class="resource-deployed-line"><span id="waterDeployed">0</span> deployed</div>
+            <div class="resource-status" id="waterStatus">Ready to deploy</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI INSIGHT -->
+    <section class="section fade-in delay-2">
+      <div class="ai-insight-card" id="aiInsightCard">
+        <div class="ai-insight-icon">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div class="ai-insight-body">
+          <div class="ai-insight-label">AI Insight</div>
+          <div class="ai-insight-text" id="aiInsightText">
+            <strong>Zone A</strong> has the highest combined exposure score. Deploying one cooling unit here can immediately support <strong>35 exposed workers</strong>.
+          </div>
+          <a class="ai-insight-link" id="viewReasoningLink" onclick="scrollToReasoning(event)">
+            View reasoning <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI PRIORITY RANKING -->
+    <section class="section fade-in delay-3">
+      <div class="section-head">
+        <div class="section-title">AI Priority Ranking</div>
+        <div class="context-line">
+          <i class="fa-solid fa-shield-halved"></i>
+          Where should limited resources go first?
+        </div>
+      </div>
+      <div class="priority-grid" id="priorityGrid"></div>
+    </section>
+
+    <!-- PROTECTION IMPACT + METRICS ROW -->
+    <section class="section fade-in delay-5">
+      <div class="metrics-row" style="display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:16px;">
+        <!-- Protection Impact -->
+        <div class="protection-impact" id="protectionImpact">
+          <div class="protection-head">
+            <div class="protection-title">Protection Impact</div>
+            <div class="protection-state-label" id="protectionStateLabel">Potential Protection</div>
+          </div>
+          <div class="protection-body">
+            <div class="protection-visual">
+              <div class="protection-big-number" id="protectionNumber">35</div>
+              <div class="protection-label" id="protectionLabel">workers</div>
+            </div>
+            <div class="protection-flow" id="protectionFlow">
+              <div class="protection-flow-step" id="pfStep1">1 cooling unit</div>
+              <div class="protection-flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+              <div class="protection-flow-step" id="pfStep2">35 exposed workers</div>
+              <div class="protection-flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+              <div class="protection-flow-step" id="pfStep3">Pending deployment</div>
+            </div>
+          </div>
+        </div>
+        <!-- Resource Efficiency -->
+        <div class="resource-efficiency">
+          <div class="efficiency-icon">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div class="efficiency-info">
+            <div class="efficiency-label">Resource Efficiency</div>
+            <div class="efficiency-flow">
+              1 cooling unit
+              <span class="efficiency-flow-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+              35 workers
+            </div>
+          </div>
+        </div>
+        <!-- Resource Coverage -->
+        <div class="resource-coverage">
+          <div class="coverage-ring-wrap">
+            <svg viewBox="0 0 56 56">
+              <circle class="coverage-ring-bg" cx="28" cy="28" r="22"/>
+              <circle class="coverage-ring-fill" id="coverageRing" cx="28" cy="28" r="22"/>
+            </svg>
+            <div class="coverage-ring-text" id="coveragePercent">0%</div>
+          </div>
+          <div class="coverage-info">
+            <div class="coverage-label">Resource Coverage</div>
+            <div class="coverage-desc" id="coverageDesc">0 of 3 high-risk zones covered by available mitigation.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI EXPLANATION: WHY ZONE A? -->
+    <section class="section fade-in delay-6" id="whyZoneA">
+      <div class="ai-card">
+        <div class="ai-card-head">
+          <div class="ai-card-title-block">
+            <div class="ai-icon-wrap">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div>
+              <div class="ai-label">AI Prioritization Explanation</div>
+              <h2 class="ai-title">Why Zone A?</h2>
+            </div>
+          </div>
+          <div class="ai-confidence">
+            AI recommendation confidence
+            <strong id="confidenceValue">0%</strong>
+            <span style="font-size:10px;color:var(--text-3);font-weight:500;display:block;margin-top:2px;">High confidence</span>
+          </div>
+        </div>
+
+        <div class="ai-explanation-text">
+          <strong>Zone A</strong> received the highest priority because it combines critical heat conditions, high worker exposure, and prolonged exposure duration.
+        </div>
+
+        <div class="factors-grid">
+          <div class="factor-card critical">
+            <div class="factor-icon"><i class="fa-solid fa-temperature-arrow-up"></i></div>
+            <div class="factor-label">Critical Heat</div>
+            <div class="factor-value">High severity</div>
+            <div class="factor-detail">WBGT 32.4°C · 9°F above threshold</div>
+          </div>
+          <div class="factor-card high">
+            <div class="factor-icon"><i class="fa-solid fa-people-group"></i></div>
+            <div class="factor-label">Worker Exposure</div>
+            <div class="factor-value">35 workers</div>
+            <div class="factor-detail">Largest exposed workforce on site</div>
+          </div>
+          <div class="factor-card high">
+            <div class="factor-icon"><i class="fa-regular fa-clock"></i></div>
+            <div class="factor-label">Exposure Duration</div>
+            <div class="factor-value">Prolonged</div>
+            <div class="factor-detail">4.5+ hours without rotation</div>
+          </div>
+        </div>
+
+        <!-- DECISION FLOW -->
+        <div class="diagram">
+          <div class="diagram-title">
+            <i class="fa-solid fa-diagram-project"></i>
+            Decision Flow
+          </div>
+          <div class="diagram-flow">
+            <div class="diagram-node heat">
+              <div class="diagram-node-title">Heat Risk</div>
+              <div class="diagram-node-value">Critical</div>
+            </div>
+            <div class="diagram-op">+</div>
+            <div class="diagram-node exposure">
+              <div class="diagram-node-title">Worker Exposure</div>
+              <div class="diagram-node-value">35 workers</div>
+            </div>
+            <div class="diagram-op">+</div>
+            <div class="diagram-node duration">
+              <div class="diagram-node-title">Exposure Duration</div>
+              <div class="diagram-node-value">Prolonged</div>
+            </div>
+          </div>
+          <div class="diagram-arrow"><i class="fa-solid fa-arrow-down-long"></i></div>
+          <div class="diagram-flow">
+            <div class="diagram-node score">
+              <div class="diagram-node-title">AI Priority Score</div>
+              <div class="diagram-node-value">92 / 100</div>
+            </div>
+            <div class="diagram-arrow" style="margin:0;"><i class="fa-solid fa-arrow-right-long"></i></div>
+            <div class="diagram-node allocation">
+              <div class="diagram-node-title">Resource Allocation</div>
+              <div class="diagram-node-value" id="diagramAllocation">Deploy Cooling</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOW THE AI DECIDES -->
+        <div class="decision-viz">
+          <div class="viz-head">
+            <div class="viz-title">
+              <i class="fa-solid fa-microchip"></i>
+              How the AI Decides
+            </div>
+            <div class="viz-note">Visual prototype indicators — not live ML outputs.</div>
+          </div>
+
+          <div class="factor-row">
+            <div class="factor-row-label">Heat Severity <span class="weight-label">40%</span></div>
+            <div class="factor-row-bar"><div class="factor-row-fill critical" data-width="95"></div></div>
+            <div class="factor-row-status critical">Critical</div>
+          </div>
+          <div class="factor-row">
+            <div class="factor-row-label">Worker Exposure <span class="weight-label">35%</span></div>
+            <div class="factor-row-bar"><div class="factor-row-fill high" data-width="82"></div></div>
+            <div class="factor-row-status high">High</div>
+          </div>
+          <div class="factor-row">
+            <div class="factor-row-label">Exposure Duration <span class="weight-label">25%</span></div>
+            <div class="factor-row-bar"><div class="factor-row-fill high" data-width="88"></div></div>
+            <div class="factor-row-status high">High</div>
+          </div>
+
+          <div class="final-score-row">
+            <div class="final-score-label">
+              <i class="fa-solid fa-brain"></i>
+              AI Priority Score
+            </div>
+            <div class="final-score-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>
+            <div class="final-score-value">92</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUDIT TRAIL -->
+    <section class="section fade-in delay-7">
+      <div class="audit-card" id="auditCard">
+        <div class="audit-header">
+          <div class="audit-title">Action Recorded</div>
+          <div class="audit-action-recorded" id="auditRecordedBadge">
+            <span></span>Action recorded
+          </div>
+        </div>
+        <ul class="audit-list" id="auditList">
+          <li class="audit-empty" id="auditEmpty">No actions recorded yet. Deploy a resource to begin the audit trail.</li>
+        </ul>
+        <a class="audit-link" id="auditLink" href="Incident.html">
+          View in Incident History <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="page-footer fade-in delay-8">
+      <div class="footer-note">
+        <i class="fa-solid fa-brain"></i>
+        AI recommendations are based on heat severity, worker exposure, and exposure duration.
+      </div>
+      <div class="footer-meta">HeatShield v2.4 · Resource Allocation Module</div>
+    </footer>
+
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-icon" id="modalIcon"><i class="fa-solid fa-snowflake"></i></div>
+      <div>
+        <div class="modal-title" id="modalTitle">Deploy cooling unit?</div>
+        <div class="modal-subtitle" id="modalSubtitle">Review the allocation details below.</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-body-text" id="modalBodyText">
+        This will allocate <strong>1 available cooling unit</strong> to <strong>Zone A</strong>. The unit will be marked as deployed and removed from available inventory.
+      </div>
+      <div class="modal-stats" id="modalStats">
+        <div>
+          <div class="modal-stat-label">Available</div>
+          <div class="modal-stat-value primary" id="modalAvail">2</div>
+        </div>
+        <div>
+          <div class="modal-stat-label">Workers</div>
+          <div class="modal-stat-value" id="modalWorkers">35</div>
+        </div>
+        <div>
+          <div class="modal-stat-label">Priority</div>
+          <div class="modal-stat-value critical" id="modalPriority">92</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" id="modalConfirm" onclick="confirmDeployment()">Deploy</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+<script>
+    const SUPABASE_URL = "https://keztqrrtzhxjvstfuqfp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_79OlgP1MibPc_l0l7MN5Qg_dqID04ua";
+
+    const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+</script>
+<script>
+// ==============================
+// STATE
+// ==============================
+const state = {
+  coolingTotal: 2,
+  coolingAvailable: 2,
+  coolingDeployed: 0,
+  waterTotal: 3,
+  waterAvailable: 3,
+  waterDeployed: 0,
+  zoneA: {
+    name: 'Zone A',
+    score: 92,
+    workers: 35,
+    riskLevel: 'Critical',
+    riskClass: 'critical',
+    duration: 'Prolonged',
+    mitigation: null // null | 'cooling'
+  },
+  zoneC: {
+    name: 'Zone C',
+    score: 87,
+    workers: 20,
+    riskLevel: 'Critical',
+    riskClass: 'critical',
+    duration: 'Prolonged',
+    rotation: false
+  },
+  zoneB: {
+    name: 'Zone B',
+    score: 79,
+    workers: 50,
+    riskLevel: 'High',
+    riskClass: 'high',
+    duration: 'Prolonged',
+    waterDeployed: false
+  },
+  auditEvents: [],
+  currentDeployment: null // { type, zone, action }
+};
+
+// ==============================
+// UTILITY
+// ==============================
+function getTimeStr() {
+  const now = new Date();
+  let h = now.getHours();
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${m} ${ampm}`;
+}
+
+function getTimeOffset(minutesAgo) {
+  const d = new Date(Date.now() - minutesAgo * 60000);
+  let h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${m} ${ampm}`;
+}
+async function saveResourceDeployment({
+    zone,
+    resourceType,
+    resourceNumber,
+    workersAffected,
+    priorityScore,
+    action
+}) {
+    try {
+        const { data: { user }, error: userError } =
+            await supabaseClient.auth.getUser();
+
+        if (userError) {
+            console.error("User lookup error:", userError);
+            return false;
+        }
+
+        if (!user) {
+            console.error("No authenticated user found.");
+            showToast(
+                '⚠️',
+                'Authentication required',
+                'Please log in again before deploying a resource.'
+            );
+            return false;
+        }
+
+        const { error } = await supabaseClient
+            .from('resource_deployments')
+            .insert({
+                user_id: user.id,
+                zone: zone,
+                resource_type: resourceType,
+                resource_number: resourceNumber,
+                workers_affected: workersAffected,
+                priority_score: priorityScore,
+                action: action
+            });
+
+        if (error) {
+            console.error("Resource deployment save error:", error);
+            showToast(
+                '⚠️',
+                'Database error',
+                'The deployment could not be recorded.'
+            );
+            return false;
+        }
+
+        console.log("Resource deployment saved successfully.");
+        return true;
+
+    } catch (error) {
+        console.error("Unexpected database error:", error);
+        return false;
+    }
+}
+// ==============================
+// RENDER PRIORITY GRID
+// ==============================
+function renderPriorityGrid() {
+  const grid = document.getElementById('priorityGrid');
+  const zA = state.zoneA;
+  const zC = state.zoneC;
+  const zB = state.zoneB;
+
+  let zoneACardClass = 'priority-card rank-1';
+  let zoneADotClass = 'zone-dot critical';
+  let zoneARiskClass = 'risk-badge critical';
+  let zoneARiskText = zA.riskLevel + ' Heat Risk';
+  let zoneABadge = '<div class="recommended-badge" id="recBadge">RECOMMENDED FIRST</div>';
+  let mitigationHTML = '<div class="mitigation-status" id="zoneAMitigation"></div>';
+  let zoneABtnHTML = '';
+
+  if (zA.mitigation === 'cooling') {
+    zoneACardClass += ' mitigated';
+    zoneADotClass = 'zone-dot safe';
+    zoneARiskClass = 'risk-badge mitigated-badge';
+    zoneARiskText = 'Critical — Mitigation Active';
+    zoneABadge = '<div class="recommended-badge active-mitigation" id="recBadge">MITIGATION ACTIVE</div>';
+    mitigationHTML = '<div class="mitigation-status visible" id="zoneAMitigation">Cooling deployed</div>';
+    zoneABtnHTML = '<button class="deploy-btn deployed" disabled><i class="fa-solid fa-check"></i> Cooling Deployed</button>';
+  } else if (state.coolingAvailable <= 0) {
+    zoneABtnHTML = `
+      <div class="no-resource-note">
+        <i class="fa-solid fa-circle-xmark"></i>
+        No cooling units available
+        <br><span>Consider worker rotation or schedule adjustment.</span>
+      </div>`;
+  } else {
+    zoneABtnHTML = '<button class="deploy-btn" onclick="openModal(\'cooling\',\'Zone A\')"><i class="fa-solid fa-snowflake"></i> Deploy Cooling <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></button>';
+  }
+
+  let zoneCBtnHTML = '';
+  if (zC.rotation) {
+    zoneCBtnHTML = '<button class="deploy-btn-secondary confirmed" disabled><i class="fa-solid fa-check"></i> Rotation Recommended</button>';
+  } else {
+    zoneCBtnHTML = '<button class="deploy-btn-secondary" onclick="recommendRotation()"><i class="fa-solid fa-rotate"></i> Recommend Rotation <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></button>';
+  }
+
+  let zoneBBtnHTML = '';
+  if (zB.waterDeployed) {
+    zoneBBtnHTML = '<button class="deploy-btn deployed" disabled><i class="fa-solid fa-check"></i> Water Deployed</button>';
+  } else if (state.waterAvailable <= 0) {
+    zoneBBtnHTML = `
+      <div class="no-resource-note">
+        <i class="fa-solid fa-circle-xmark"></i>
+        No water stations available
+        <br><span>Schedule replenishment.</span>
+      </div>`;
+  } else {
+    zoneBBtnHTML = '<button class="deploy-btn" onclick="openModal(\'water\',\'Zone B\')"><i class="fa-solid fa-droplet"></i> Deploy Water <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></button>';
+  }
+
+  grid.innerHTML = `
+    <!-- Zone A -->
+    <div class="${zoneACardClass}" id="zoneACard">
+      <div class="rank-badge">#1</div>
+      <div class="zone-header">
+        <span class="${zoneADotClass}"></span>
+        <span class="zone-name">${zA.name}</span>
+      </div>
+      ${zoneABadge}
+      <div class="${zoneARiskClass}">${zoneARiskText}</div>
+      ${mitigationHTML}
+      <div class="priority-score-block">
+        <div class="score-label">Priority Score</div>
+        <div class="score-value">
+          <span class="score-number">${zA.score}</span>
+          <span class="score-divider">/</span>
+          <span class="score-max">100</span>
+        </div>
+      </div>
+      <div class="priority-bar-track">
+        <div class="priority-bar-fill critical" data-width="${zA.score}"></div>
+      </div>
+      <div class="zone-meta">
+        <div class="meta-item">
+          <div class="meta-label"><i class="fa-solid fa-users"></i> Workers</div>
+          <div class="meta-value">${zA.workers}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label"><i class="fa-regular fa-clock"></i> Duration</div>
+          <div class="meta-value">${zA.duration}</div>
+        </div>
+      </div>
+      <div class="ai-rec-line">
+        <span class="ai-rec-label">AI Recommendation:</span>
+        <span>❄️ Deploy Cooling</span>
+      </div>
+      ${zoneABtnHTML}
+    </div>
+
+    <!-- Zone C -->
+    <div class="priority-card rank-2" id="zoneCCard">
+      <div class="rank-badge">#2</div>
+      <div class="zone-header">
+        <span class="zone-dot critical"></span>
+        <span class="zone-name">${zC.name}</span>
+      </div>
+      <div class="risk-badge critical">Critical Heat Risk</div>
+      <div class="priority-score-block">
+        <div class="score-label">Priority Score</div>
+        <div class="score-value">
+          <span class="score-number">${zC.score}</span>
+          <span class="score-divider">/</span>
+          <span class="score-max">100</span>
+        </div>
+      </div>
+      <div class="priority-bar-track">
+        <div class="priority-bar-fill critical" data-width="${zC.score}"></div>
+      </div>
+      <div class="zone-meta">
+        <div class="meta-item">
+          <div class="meta-label"><i class="fa-solid fa-users"></i> Workers</div>
+          <div class="meta-value">${zC.workers}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label"><i class="fa-regular fa-clock"></i> Duration</div>
+          <div class="meta-value">${zC.duration}</div>
+        </div>
+      </div>
+      <div class="ai-rec-line">
+        <span class="ai-rec-label">AI Recommendation:</span>
+        <span>🔄 Rotate Workers</span>
+      </div>
+      ${zoneCBtnHTML}
+    </div>
+
+    <!-- Zone B -->
+    <div class="priority-card rank-3" id="zoneBCard">
+      <div class="rank-badge">#3</div>
+      <div class="zone-header">
+        <span class="zone-dot high"></span>
+        <span class="zone-name">${zB.name}</span>
+      </div>
+      <div class="risk-badge high">High Heat Risk</div>
+      <div class="priority-score-block">
+        <div class="score-label">Priority Score</div>
+        <div class="score-value">
+          <span class="score-number">${zB.score}</span>
+          <span class="score-divider">/</span>
+          <span class="score-max">100</span>
+        </div>
+      </div>
+      <div class="priority-bar-track">
+        <div class="priority-bar-fill high" data-width="${zB.score}"></div>
+      </div>
+      <div class="zone-meta">
+        <div class="meta-item">
+          <div class="meta-label"><i class="fa-solid fa-users"></i> Workers</div>
+          <div class="meta-value">${zB.workers}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label"><i class="fa-regular fa-clock"></i> Duration</div>
+          <div class="meta-value">${zB.duration}</div>
+        </div>
+      </div>
+      <div class="ai-rec-line">
+        <span class="ai-rec-label">AI Recommendation:</span>
+        <span>💧 Replenish Water</span>
+      </div>
+      ${zoneBBtnHTML}
+    </div>
+  `;
+
+  // Animate bars after render
+  requestAnimationFrame(() => {
+    grid.querySelectorAll('.priority-bar-fill').forEach(bar => {
+      const w = bar.getAttribute('data-width');
+      if (w) bar.style.width = w + '%';
+    });
+  });
+}
+
+// ==============================
+// UPDATE RESOURCE CARDS
+// ==============================
+function updateResourceCards() {
+  const ca = document.getElementById('coolingAvail');
+  const cd = document.getElementById('coolingDeployed');
+  const cs = document.getElementById('coolingStatus');
+  const wa = document.getElementById('waterAvail');
+  const wd = document.getElementById('waterDeployed');
+  const ws = document.getElementById('waterStatus');
+
+  ca.textContent = state.coolingAvailable;
+  cd.textContent = state.coolingDeployed;
+  wa.textContent = state.waterAvailable;
+  wd.textContent = state.waterDeployed;
+
+  // Cooling status
+  if (state.coolingAvailable === 0) {
+    cs.className = 'resource-status empty';
+    cs.innerHTML = '';
+    cs.appendChild(document.createTextNode('All deployed'));
+    ca.style.color = 'var(--critical)';
+  } else if (state.coolingAvailable === 1) {
+    cs.className = 'resource-status low';
+    cs.innerHTML = '';
+    cs.appendChild(document.createTextNode('1 remaining'));
+    ca.style.color = 'var(--warning)';
+  } else {
+    cs.className = 'resource-status';
+    cs.innerHTML = '';
+    cs.appendChild(document.createTextNode('Ready to deploy'));
+    ca.style.color = '';
+  }
+
+  // Water status
+  if (state.waterAvailable === 0) {
+    ws.className = 'resource-status empty';
+    ws.innerHTML = '';
+    ws.appendChild(document.createTextNode('All deployed'));
+    wa.style.color = 'var(--critical)';
+  } else if (state.waterAvailable === 1) {
+    ws.className = 'resource-status low';
+    ws.innerHTML = '';
+    ws.appendChild(document.createTextNode('1 remaining'));
+    wa.style.color = 'var(--warning)';
+  } else {
+    ws.className = 'resource-status';
+    ws.innerHTML = '';
+    ws.appendChild(document.createTextNode('Ready to deploy'));
+    wa.style.color = '';
+  }
+}
+
+// ==============================
+// UPDATE PROTECTION IMPACT
+// ==============================
+function updateProtectionImpact() {
+  const el = document.getElementById('protectionImpact');
+  const label = document.getElementById('protectionStateLabel');
+  const step3 = document.getElementById('pfStep3');
+
+  if (state.zoneA.mitigation === 'cooling') {
+    el.classList.add('success');
+    label.textContent = 'Workers Protected';
+    step3.textContent = 'Zone A mitigation active';
+    step3.classList.add('active');
+    document.getElementById('pfStep1').classList.add('active');
+    document.getElementById('pfStep2').classList.add('active');
+  }
+}
+
+// ==============================
+// UPDATE COVERAGE
+// ==============================
+function updateCoverage() {
+  const ring = document.getElementById('coverageRing');
+  const text = document.getElementById('coveragePercent');
+  const desc = document.getElementById('coverageDesc');
+  const circumference = 2 * Math.PI * 22; // ~138.23
+
+  let covered = 0;
+  if (state.zoneA.mitigation === 'cooling') covered++;
+  if (state.zoneC.rotation) covered++;
+  if (state.zoneB.waterDeployed) covered++;
+
+  const pct = Math.round((covered / 3) * 100);
+  const offset = circumference - (circumference * pct / 100);
+
+  ring.style.strokeDashoffset = offset;
+  if (pct > 0) {
+    ring.style.stroke = 'var(--safe)';
+  }
+
+  // Animate number
+  let current = 0;
+  const step = Math.max(1, Math.floor(pct / 20));
+  const interval = setInterval(() => {
+    current += step;
+    if (current >= pct) {
+      current = pct;
+      clearInterval(interval);
+    }
+    text.textContent = current + '%';
+  }, 40);
+
+  desc.textContent = `${covered} of 3 high-risk zones currently have active mitigation resources.`;
+}
+
+// ==============================
+// UPDATE AI INSIGHT
+// ==============================
+function updateAIInsight() {
+  const el = document.getElementById('aiInsightText');
+  const link = document.getElementById('viewReasoningLink');
+
+  if (state.zoneA.mitigation === 'cooling') {
+    el.innerHTML = 'Cooling has been deployed to <strong>Zone A</strong>. <strong>35 exposed workers</strong> are now covered by the active mitigation action.';
+    link.style.display = 'none';
+  }
+}
+
+// ==============================
+// AUDIT TRAIL
+// ==============================
+function addAuditEvents(events) {
+  const list = document.getElementById('auditList');
+  const empty = document.getElementById('auditEmpty');
+  const badge = document.getElementById('auditRecordedBadge');
+  const link = document.getElementById('auditLink');
+
+  if (empty) empty.remove();
+
+  events.forEach((ev, i) => {
+    state.auditEvents.push(ev);
+    const li = document.createElement('li');
+    li.className = 'audit-item' + (ev.highlight ? ' highlight' : '');
+    li.innerHTML = `
+      <div class="audit-detail">${ev.text}</div>
+      <div class="audit-time">${ev.time}</div>
+    `;
+    list.appendChild(li);
+
+    // Staggered slide-in
+    setTimeout(() => {
+      li.classList.add('visible');
+    }, 100 + i * 150);
+  });
+
+  // Show badge and link after last event
+  setTimeout(() => {
+    badge.classList.add('visible');
+    link.classList.add('visible');
+  }, 100 + events.length * 150 + 200);
+}
+
+// ==============================
+// TOAST
+// ==============================
+function showToast(icon, title, message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-message">${message}</div>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+  `;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+
+  // Auto dismiss
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 5000);
+}
+
+// ==============================
+// MODAL
+// ==============================
+function openModal(type, zone) {
+  const backdrop = document.getElementById('modalBackdrop');
+  const icon = document.getElementById('modalIcon');
+  const title = document.getElementById('modalTitle');
+  const subtitle = document.getElementById('modalSubtitle');
+  const bodyText = document.getElementById('modalBodyText');
+  const confirmBtn = document.getElementById('modalConfirm');
+
+  state.currentDeployment = { type, zone };
+
+  if (type === 'cooling') {
+    icon.className = 'modal-icon cool';
+    icon.innerHTML = '<i class="fa-solid fa-snowflake"></i>';
+    title.textContent = 'Deploy cooling unit to Zone A?';
+    subtitle.textContent = 'Review the allocation details below.';
+    bodyText.innerHTML = `This will allocate <strong>1 available cooling unit</strong> to <strong>Zone A</strong>. The unit will be marked as deployed and removed from available inventory.`;
+    document.getElementById('modalAvail').textContent = state.coolingAvailable;
+    document.getElementById('modalWorkers').textContent = '35';
+    document.getElementById('modalPriority').textContent = '92';
+    confirmBtn.textContent = 'Deploy Cooling';
+  } else if (type === 'water') {
+    icon.className = 'modal-icon water';
+    icon.innerHTML = '<i class="fa-solid fa-droplet"></i>';
+    title.textContent = 'Deploy water station to Zone B?';
+    subtitle.textContent = 'Review the allocation details below.';
+    bodyText.innerHTML = `This will allocate <strong>1 available water station</strong> to <strong>Zone B</strong>. The station will be marked as deployed and removed from available inventory.`;
+    document.getElementById('modalAvail').textContent = state.waterAvailable;
+    document.getElementById('modalWorkers').textContent = '50';
+    document.getElementById('modalPriority').textContent = '79';
+    confirmBtn.textContent = 'Deploy Water';
+  }
+
+  backdrop.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('show');
+  state.currentDeployment = null;
+}
+
+// Close modal on backdrop click
+document.getElementById('modalBackdrop').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ==============================
+// CONFIRM DEPLOYMENT
+// ==============================
+function confirmDeployment() {
+  if (!state.currentDeployment) return;
+  const { type, zone } = state.currentDeployment;
+  closeModal();
+
+  if (type === 'cooling') {
+    deployCooling();
+  } else if (type === 'water') {
+    deployWater();
+  }
+}
+
+// ==============================
+// DEPLOY COOLING
+// ==============================
+async function deployCooling() {
+  // Get the button before re-render
+  const grid = document.getElementById('priorityGrid');
+  const zoneACard = document.getElementById('zoneACard');
+  const btn = zoneACard ? zoneACard.querySelector('.deploy-btn') : null;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-spinner"></span> Deploying...';
+  }
+
+  // Simulate deployment delay
+  setTimeout(async () => {
+    // Update state
+    state.coolingAvailable--;
+    state.coolingDeployed++;
+    state.zoneA.mitigation = 'cooling';
+    
+  const saved = await saveResourceDeployment({
+      zone: 'Zone A',
+      resourceType: 'cooling',
+      resourceNumber: state.coolingDeployed,
+      workersAffected: 35,
+      priorityScore: 92,
+      action: 'deployed'
+  });
+    const now = getTimeStr();
+    const unitNum = String(state.coolingDeployed).padStart(2, '0');
+
+    // Update all UI
+    updateResourceCards();
+    renderPriorityGrid();
+    updateProtectionImpact();
+    updateCoverage();
+    updateAIInsight();
+
+    // Add audit events
+    addAuditEvents([
+      { text: 'Critical heat detected', time: getTimeOffset(12), highlight: false },
+      { text: 'Zone A prioritized', time: getTimeOffset(7), highlight: false },
+      { text: 'Cooling deployment recommended', time: getTimeOffset(2), highlight: false },
+      { text: `Cooling Unit #${unitNum} deployed to Zone A`, time: now, highlight: true },
+      { text: 'Action recorded', time: now, highlight: false }
+    ]);
+
+    // Toast
+    showToast('❄️', `Cooling Unit #${unitNum} deployed to Zone A`, `${now} · Action recorded`);
+
+  }, 1800);
+}
+
+// ==============================
+// DEPLOY WATER
+// ==============================
+async function deployWater() {
+  const grid = document.getElementById('priorityGrid');
+  const zoneBCard = document.getElementById('zoneBCard');
+  const btn = zoneBCard ? zoneBCard.querySelector('.deploy-btn') : null;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-spinner"></span> Deploying...';
+  }
+
+  setTimeout(async () => {
+    state.waterAvailable--;
+    state.waterDeployed++;
+    state.zoneB.waterDeployed = true;
+  const saved = await saveResourceDeployment({
+    zone: 'Zone B',
+    resourceType: 'water',
+    resourceNumber: state.waterDeployed,
+    workersAffected: 50,
+    priorityScore: 79,
+    action: 'deployed'
+  });
+
+    const now = getTimeStr();
+    const stationNum = String(state.waterDeployed).padStart(2, '0');
+
+    updateResourceCards();
+    renderPriorityGrid();
+    updateCoverage();
+
+    addAuditEvents([
+      { text: 'High heat risk in Zone B', time: getTimeOffset(8), highlight: false },
+      { text: 'Water replenishment recommended', time: getTimeOffset(3), highlight: false },
+      { text: `Water Station #${stationNum} deployed to Zone B`, time: now, highlight: true },
+      { text: 'Action recorded', time: now, highlight: false }
+    ]);
+
+    showToast('💧', `Water Station #${stationNum} deployed to Zone B`, `${now} · Action recorded`);
+
+  }, 1800);
+}
+
+// ==============================
+// RECOMMEND ROTATION (Zone C)
+// ==============================
+function recommendRotation() {
+  const btn = document.querySelector('#zoneCCard .deploy-btn-secondary');
+  if (!btn || state.zoneC.rotation) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spinner" style="border-color:rgba(37,99,235,0.3);border-top-color:var(--primary);"></span> Processing...';
+
+  setTimeout(() => {
+    state.zoneC.rotation = true;
+    renderPriorityGrid();
+    updateCoverage();
+
+    const now = getTimeStr();
+
+    addAuditEvents([
+      { text: 'Critical heat in Zone C', time: getTimeOffset(5), highlight: false },
+      { text: 'Worker rotation recommended', time: now, highlight: true },
+      { text: 'Action recorded', time: now, highlight: false }
+    ]);
+
+    showToast('🔄', 'Worker rotation recommended for Zone C', `${now} · Action recorded`);
+
+  }, 1200);
+}
+
+// ==============================
+// SCROLL TO REASONING
+// ==============================
+function scrollToReasoning(e) {
+  e.preventDefault();
+  const target = document.getElementById('whyZoneA');
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ==============================
+// LIVE "UPDATED" TIMER
+// ==============================
+let updateSeconds = 24;
+setInterval(() => {
+  updateSeconds += 3;
+  if (updateSeconds > 59) updateSeconds = 1;
+  const el = document.getElementById('updatedAgo');
+  if (el) el.textContent = `Updated ${updateSeconds} sec ago`;
+}, 3000);
+
+// ==============================
+// CONFIDENCE COUNTER ANIMATION
+// ==============================
+function animateConfidence() {
+  const el = document.getElementById('confidenceValue');
+  if (!el) return;
+  let current = 0;
+  const target = 94;
+  const duration = 1400;
+  const startTime = performance.now();
+
+  function tick(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    current = Math.round(eased * target);
+    el.textContent = current + '%';
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ==============================
+// INTERSECTION OBSERVER FOR ANIMATIONS
+// ==============================
+function setupObservers() {
+  // Animate factor-row fills and coverage ring on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Factor row bars
+        entry.target.querySelectorAll('.factor-row-fill').forEach(bar => {
+          const w = bar.getAttribute('data-width');
+          if (w) bar.style.width = w + '%';
+        });
+
+        // Confidence animation
+        if (entry.target.querySelector('.ai-confidence')) {
+          animateConfidence();
+        }
+
+        // Coverage ring
+        if (entry.target.querySelector('.coverage-ring-fill')) {
+          updateCoverage();
+        }
+
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  // Observe decision-viz, ai-card-head, coverage section
+  document.querySelectorAll('.decision-viz, .ai-card-head, .resource-coverage').forEach(el => {
+    observer.observe(el);
+  });
+}
+
+// ==============================
+// MOBILE SIDEBAR
+// ==============================
+document.getElementById('mobileToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+});
+document.getElementById('sidebarOverlay').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+});
+
+// ==============================
+// INIT
+// ==============================
+function init() {
+  renderPriorityGrid();
+  updateResourceCards();
+  setupObservers();
+
+  // Initial coverage ring setup (0%)
+  const ring = document.getElementById('coverageRing');
+  const circumference = 2 * Math.PI * 22;
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

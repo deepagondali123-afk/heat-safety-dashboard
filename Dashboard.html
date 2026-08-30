@@ -1,0 +1,2134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HeatShield — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Leaflet for Interactive Maps -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  :root{
+    --bg:#F4F6F8;
+    --bg-alt:#EDEFF2;
+    --card:#FFFFFF;
+    --card-alt:#FAFBFA;
+    --text:#263238;
+    --sidebar-bg:#ECE9F8;
+    --sidebar-border:#D9D3EF;
+    --sidebar-active:#FFFFFF;
+    --sidebar-text:#5B4B8A;
+    --sidebar-text-muted:#8579B0;
+    --sidebar-hover-bg:rgba(124,58,237,0.08);
+    --sidebar-hover-text:#2D1B5E;
+    --sidebar-primary:#2563EB;
+    --sidebar-ai:#7C3AED;
+    --text-muted:#98A2B3;
+    --border:#E5E9ED;
+    --accent:#3B82F6;
+    --accent-soft:#EFF6FF;
+    --critical:#EF4444;
+    --critical-bg:#FEE2E2;
+    --warning:#F97316;
+    --warning-bg:#FFEDD5;
+    --moderate:#EAB308;
+    --moderate-bg:#FEF9C3;
+    --safe:#10B981;
+    --safe-bg:#D1FAE5;
+    --purple-glow:rgba(139, 92, 246, 0.05);
+    --blue-glow:rgba(59, 130, 246, 0.05);
+  }
+  *{box-sizing:border-box;}
+  html, body { height: 100%; margin: 0; padding: 0; }
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background: radial-gradient(circle at 0% 0%, #E0E7FF 0%, #F4F6F8 40%, #FFFFFF 100%);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    min-height: 100vh;
+  }
+  .app{ display:flex; min-height:100vh; width:100%; }
+
+  /* ---------- Mobile Hamburger & Overlay ---------- */
+  .mobile-toggle{
+    display:none;
+    position:fixed;
+    top:14px; left:14px;
+    width:36px;height:36px;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:10px;
+    align-items:center;justify-content:center;
+    cursor:pointer;
+    z-index:50;
+    box-shadow: 0 2px 8px rgba(38,50,56,0.04);
+    color:var(--text);
+    font-size:14px;
+  }
+  .sidebar-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(38,50,56,0.3);
+    backdrop-filter:blur(2px);
+    z-index:39;
+  }
+  .sidebar-overlay.show{display:block;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:260px; height: 100vh; position: fixed; top: 0; left: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    padding: 24px 16px; display: flex; flex-direction: column;
+    z-index: 40;
+    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  }
+  .brand{ display:flex; align-items:center; gap:11px; padding:0 8px; margin-bottom:8px; flex-shrink: 0; }
+  .brand-icon{
+    width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, var(--accent), #2563EB);
+    color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+  }
+  .brand-title{ font-weight:800; font-size:14px; letter-spacing:0.08em; color: var(--text); }
+  .brand-sub{ font-size:10px; color: var(--sidebar-text-muted); font-weight:500; letter-spacing:0.03em; }
+
+  nav{ margin-top:24px; display:flex; flex-direction:column; gap:6px; flex: 1; overflow-y: auto; }
+  nav::-webkit-scrollbar { width: 0px; } 
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:9px 11px; border-radius:10px;
+    font-size:13.5px; font-weight:500; color:var(--sidebar-text); background:transparent;
+    border:none; cursor:pointer; text-align:left; width:100%; transition:background .18s ease, color .18s ease;
+    font-family:inherit; margin:2px 5px; position:relative; text-decoration: none;
+  }
+  .nav-item .nav-icon{ display:flex; color:var(--sidebar-text-muted); transition:color .18s ease; width: 17px; font-size: 13.5px; text-align: center; }
+  .nav-item:hover{ background:var(--sidebar-hover-bg); color:var(--sidebar-hover-text); }
+  .nav-item:hover .nav-icon{ color:var(--sidebar-ai); }
+  .nav-item.active{ background:var(--sidebar-active); color:var(--sidebar-hover-text); box-shadow: 0 1px 3px rgba(38,50,56,0.04), 0 1px 2px rgba(38,50,56,0.03); font-weight:600; }
+  .nav-item.active .nav-icon{ color:var(--sidebar-primary); }
+  .nav-item.active::before{ content:""; position:absolute; left:-5px; top:8px; bottom:8px; width:3px; border-radius:0 3px 3px 0; background:var(--sidebar-primary); }
+  .nav-label{ font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--sidebar-text-muted); margin:16px 0 6px 15px; }
+
+  .profile-card{
+    display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:14px;
+    background:rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid var(--border); margin-top:16px; 
+    box-shadow: 0 1px 2px rgba(13, 13, 198, 0.03);
+    flex-shrink: 0;
+  }
+  .avatar{
+    width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, var(--accent), #7CC4DB); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+  }
+  .profile-name{ font-size:12.5px; font-weight:600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .profile-loc{ font-size:10.5px; color: var(--sidebar-text-muted); font-weight:500; }
+
+  /* ---------- Main ---------- */
+  main{ flex:1; min-width:0; padding:32px 40px 32px 296px; max-width:1600px; margin:0 auto; width:100%; position: relative; }
+  main::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px; width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--purple-glow) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  main::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; left: 200px; width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--blue-glow) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  main > * { position: relative; z-index: 1; }
+
+  .header{ display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:24px; }
+  .header h1{ font-size:24px; font-weight:700; margin:0; letter-spacing:-0.3px; }
+  .header-meta{ display:flex; align-items:center; gap:8px; font-size:14px; color:var(--text-secondary); margin-top:6px; }
+  .header-meta .dot{ color:var(--text-muted); }
+  .header-right{ display:flex; align-items:center; gap:16px; }
+  .status-online{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--text-secondary); }
+  .status-dot{ width:8px; height:8px; border-radius:50%; background:var(--safe); }
+  .icon-btn{
+    position:relative; width:36px; height:36px; border-radius:50%; border:1px solid var(--border);
+    background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:transform .15s;
+  }
+  .icon-btn:hover{ transform:scale(1.05); }
+  .badge-dot{
+    position:absolute; top:-1px; right:-1px; width:9px; height:9px; border-radius:50%;
+    background:var(--critical); border:2px solid var(--bg);
+  }
+
+  /* ---------- Card shell ---------- */
+  .card{
+    background:rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px);
+    border:1px solid rgba(255,255,255,0.6); border-radius:16px;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.04);
+  }
+
+  /* ---------- Stats Overview Grid ---------- */
+  .stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .stat-card{ padding:20px; transition:transform .15s; opacity:0; animation:riseIn .45s ease forwards; }
+  .stat-card:hover{ transform:translateY(-3px); }
+  @keyframes riseIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  
+  /* Dynamic Stat Icons Colors */
+  .stat-icon{ width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+  .stat-icon.users { background: #EFF6FF; color: #3B82F6; }
+  .stat-icon.alert { background: var(--critical-bg); color: var(--critical); }
+  .stat-icon.bell { background: var(--warning-bg); color: var(--warning); }
+  .stat-icon.compliance { background: var(--safe-bg); color: var(--safe); }
+  .stat-icon.ai { background: var(--accent-soft); color: var(--accent); }
+  
+  .stat-label{ font-size:11px; font-weight:600; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px; }
+  .stat-value{ font-size:30px; font-weight:700; letter-spacing:-0.5px; margin-bottom:4px; font-variant-numeric:tabular-nums; transition: color .3s ease; }
+  .stat-sub{ font-size:12px; color:var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+  .trend-up { color: var(--safe); font-weight: 600; }
+  .trend-down { color: var(--critical); font-weight: 600; }
+
+  /* ---------- Heat Risk Overview ---------- */
+  .risk-card { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
+  .risk-left { flex: 1; min-width: 250px; display: flex; flex-direction: column; padding-right: 24px; border-right: 1px solid rgba(229, 233, 237, 0.5); }
+  .risk-mid { flex: 1; min-width: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-right: 24px; border-right: 1px solid rgba(229, 233, 237, 0.5); }
+  .risk-right { flex: 1.2; min-width: 300px; padding-left: 8px; display: flex; flex-direction: column; }
+  .card-pad { padding: 24px; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .card-title { font-size: 16px; font-weight: 700; margin: 0; }
+  .card-sub { font-size: 12px; color: var(--text-secondary); }
+  .risk-badge-large { display: inline-flex; align-items: center; gap: 8px; font-size: 32px; font-weight: 800; margin: 10px 0; transition: color .3s ease; }
+  .risk-desc-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+  .risk-highlights { display: flex; gap: 24px; margin-bottom: 24px; }
+  .highlight-item { display: flex; flex-direction: column; }
+  .highlight-val { font-size: 18px; font-weight: 700; color: var(--text); transition: color .3s ease; }
+  .highlight-label { font-size: 12px; color: var(--text-muted); }
+
+  /* AI Priority Region Card */
+  .ai-region-card { display: flex; flex-direction: column; gap: 16px; }
+  .ai-region-top { display: flex; justify-content: space-between; align-items: center; }
+  .ai-region-name { font-size: 22px; font-weight: 800; color: var(--text); margin: 0; }
+  .ai-region-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .ai-region-stat { background: var(--bg-alt); padding: 12px; border-radius: 8px; }
+  .ai-region-stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ai-region-stat-val { font-size: 16px; font-weight: 700; color: var(--text); }
+
+  /* Donut Chart */
+  .donut-container { position: relative; width: 160px; height: 160px; margin-bottom: 16px; }
+  .donut-container svg { transform: rotate(-90deg); }
+  .donut-bg { stroke: #EDEFF2; }
+  .donut-val { stroke: var(--critical); transition: stroke .3s ease, stroke-dashoffset .8s ease; }
+  .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .donut-num { font-size: 28px; font-weight: 800; color: var(--text); line-height: 1; transition: color .3s ease; }
+  .donut-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 4px; }
+  .risk-legend { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .leg-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Gradient Gauge Meter */
+  .gauge-container { width: 100%; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #10B981 0%, #F97316 50%, #EF4444 100%); position: relative; margin-bottom: 16px; }
+  .gauge-needle { position: absolute; top: -4px; width: 4px; height: 20px; background: var(--text); border-radius: 2px; transform: translateX(-50%); box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: left .4s ease; }
+  .gauge-marks { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); font-weight: 600; }
+
+  /* Zone Risk List */
+  .zone-list { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .zone-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; background: var(--bg-alt); transition: background .2s; cursor: pointer; }
+  .zone-row:hover { background: #e4e7ea; }
+  .zone-info { flex: 1; }
+  .zone-name-row { font-size: 13px; font-weight: 600; color: var(--text); }
+  .zone-meta-row { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .zone-status-pill { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+  .pill-high { background: var(--critical-bg); color: var(--critical); }
+  .pill-elevated { background: var(--warning-bg); color: var(--warning); }
+  .pill-moderate { background: var(--moderate-bg); color: var(--moderate); }
+  .pill-safe { background: var(--safe-bg); color: var(--safe); }
+
+  /* Chart */
+  .chart-container { position: relative; height: 180px; width: 100%; margin-top: auto; }
+  .chart-container svg { width: 100%; height: 100%; overflow: visible; }
+  .chart-tooltip { position: absolute; background: var(--text); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity .2s; transform: translate(-50%, -130%); white-space: nowrap; }
+  .chart-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--text); }
+
+  /* ---------- Dynamic View Container ---------- */
+  .view-container { display: none; }
+  .view-container.active { display: block; animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* AI Priority Task List */
+  .task-list-card { padding: 24px; margin-bottom: 24px; }
+  .task-item { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 12px; background: var(--bg-alt); margin-bottom: 12px; transition: transform .15s; opacity: 0; animation:riseIn .4s ease forwards; cursor: pointer; border: 1px solid transparent; }
+  .task-item:hover { transform: translateY(-2px); background: var(--card); box-shadow: 0 4px 12px rgba(38,50,56,0.04); border-color: var(--border); }
+  .task-item.completed { opacity: 0.6; background: var(--safe-bg); border-color: var(--safe); }
+  .task-item.completed .task-title { text-decoration: line-through; }
+  .task-score { font-size: 24px; font-weight: 800; color: var(--text); width: 60px; text-align: center; flex-shrink: 0; }
+  .task-info { flex: 1; }
+  .task-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .task-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+  .task-status-tag { font-size: 11px; font-weight: 600; color: var(--safe); background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px; }
+
+  /* ---------- Two column layout ---------- */
+  .row{ display:flex; gap:24px; margin-bottom:24px; flex-wrap:wrap; }
+  .col-grow{ flex:1; min-width:320px; }
+  .col-fixed{ width:360px; flex-shrink:0; }
+  @media (max-width:900px){ .col-fixed{ width:100%; } }
+
+  /* ---------- Priority panel ---------- */
+  .priority-card{ padding:24px; }
+  .priority-card h2{ font-size:16px; font-weight:700; margin:0; }
+  .map-sub{ font-size:14px; color:var(--text-secondary); margin:0 0 20px 0; }
+  .p-item{
+    border:1px solid var(--border); background:var(--card); border-radius:12px; padding:16px;
+    margin-bottom:12px; opacity:0; transform:translateX(12px); animation:slideIn .4s ease forwards;
+    transition:transform .15s;
+  }
+  .p-item:hover{ transform:translateY(-2px); }
+  @keyframes slideIn{ to{opacity:1; transform:translateX(0);} }
+  .p-top{ display:flex; align-items:flex-start; justify-content:space-between; }
+  .p-rank{ font-size:13px; font-weight:700; color:var(--text-muted); margin-right:6px; }
+  .p-zone{ font-size:13px; font-weight:700; }
+  .p-score-label{ font-size:11px; color:var(--text-muted); text-align:right; }
+  .p-score{ font-size:13px; font-weight:700; text-align:right; }
+  .p-meta{ font-size:12px; color:var(--text-secondary); margin:4px 0 10px 0; }
+  .p-rec{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--accent); margin-top:10px; }
+
+  .progress-track { width: 100%; height: 8px; background: var(--bg-alt); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0; transition: width .8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+  .btn-outline{
+    width:100%; font-size:13px; font-weight:600; padding:10px; border-radius:10px;
+    border:1px solid var(--border); background:transparent; color:var(--text);
+    display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;
+    transition:background .15s; font-family:inherit;
+  }
+  .btn-outline:hover{ background:var(--bg-alt); }
+  .footnote{ font-size:12px; color:var(--text-muted); line-height:1.5; margin-top:14px; }
+
+  /* ---------- Safety actions ---------- */
+  .section-title{ font-size:16px; font-weight:700; margin:0 0 16px 0; }
+  .actions-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+  @media (max-width:900px){ .actions-grid{ grid-template-columns:1fr; } }
+  .action-card{
+    padding:20px; display:flex; flex-direction:column; opacity:0; animation:riseIn .4s ease forwards;
+    transition:transform .15s;
+  }
+  .action-card:hover{ transform:translateY(-3px); }
+  .action-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .action-zone{ font-size:14px; font-weight:700; }
+  .action-text{ font-size:14px; font-weight:500; margin:0 0 2px 0; }
+  .action-by{ font-size:12px; color:var(--text-muted); margin:0 0 16px 0; }
+  .action-bottom{ margin-top:auto; display:flex; align-items:center; justify-content:space-between; }
+  .action-status{ font-size:12px; font-weight:600; padding:5px 10px; border-radius:999px; }
+  .action-btn{
+    font-size:12px; font-weight:600; padding:8px 14px; border-radius:8px; border:none;
+    background:var(--accent); color:#fff; cursor:pointer; transition:transform .15s; font-family:inherit;
+  }
+  .action-btn:hover{ transform:scale(1.04); box-shadow: 0 8px 24px -4px rgba(59,130,246,0.3); }
+  .action-btn:disabled{ background:var(--bg-alt); color:var(--text-muted); cursor:default; transform:none; }
+
+  /* ---------- Resources ---------- */
+  .resource-card{ padding:24px; }
+  .resource-card h2{ font-size:16px; font-weight:700; margin:0 0 20px 0; }
+  .res-row{ margin-bottom:18px; }
+  .res-row:last-of-type{ margin-bottom:0; }
+  .res-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .res-label{ font-size:14px; font-weight:500; }
+  .res-count{ font-size:14px; font-weight:600; color:var(--text-secondary); }
+  .res-note{ margin-top:18px; font-size:12px; color:var(--text-secondary); background:var(--card-alt); border-radius:8px; padding:10px 12px; }
+
+  /* Alert banner */
+  .alert-banner{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    background:var(--critical-bg); border:1px solid #FECACA; border-radius:12px;
+    padding:12px 16px; margin-bottom:24px; animation:fadeDown .4s ease;
+  }
+  @keyframes fadeDown{ from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+  .alert-left{ display:flex; align-items:center; gap:12px; }
+  .alert-text{ font-size:14px; }
+  .alert-text b{ font-weight:600; }
+  .alert-right{ display:flex; align-items:center; gap:12px; flex-shrink:0; }
+  .alert-btn{
+    font-size:12px; font-weight:600; padding:7px 14px; border-radius:8px; border:none;
+    background:var(--critical); color:#fff; cursor:pointer; transition:transform .15s; font-family:inherit;
+  }
+  .alert-btn:hover{ transform:scale(1.05); }
+  .alert-close{ background:none; border:none; color:var(--text-muted); cursor:pointer; display:flex; }
+
+  /* Status badges */
+  .status-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+    padding:5px 10px; border-radius:999px;
+  }
+  .status-badge .dot{ width:6px; height:6px; border-radius:50%; }
+  .status-badge.critical{ background:var(--critical-bg); color:var(--critical); }
+  .status-badge.critical .dot{ background:var(--critical); }
+  .status-badge.warning{ background:var(--warning-bg); color:var(--warning); }
+  .status-badge.warning .dot{ background:var(--warning); }
+  .status-badge.safe{ background:var(--safe-bg); color:var(--safe); }
+  .status-badge.safe .dot{ background:var(--safe); }
+
+  .btn-primary{
+    margin-top:20px; display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600;
+    padding:10px 16px; border-radius:10px; background:var(--accent); color:#fff; border:none;
+    cursor:pointer; transition:transform .15s; font-family:inherit;
+  }
+  .btn-primary:hover{ transform:scale(1.03); box-shadow: 0 8px 24px -4px rgba(59,130,246,0.4); }
+
+  svg{ display:block; }
+
+  /* ========================================== */
+  /* LIVE HEAT RISK MAP - LEAFLET OVERRIDES      */
+  /* ========================================== */
+
+  .map-container-wrapper {
+    position: relative;
+    height: calc(100vh - 160px);
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.04);
+    border: 1px solid var(--border);
+  }
+
+  #texasMap {
+    width: 100%;
+    height: 100%;
+    background: #F4F6F8; 
+    z-index: 1;
+  }
+
+  /* Mask surrounding states to focus only on Texas */
+  .texas-mask {
+    fill: #FFFFFF; 
+    fill-opacity: 0.85;
+    pointer-events: none;
+  }
+
+  .leaflet-control-attribution {
+    background: rgba(255,255,255,0.8) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 10px !important;
+    color: var(--text-muted) !important;
+    padding: 2px 6px !important;
+    border-top-left-radius: 6px;
+  }
+  .leaflet-control-attribution a { color: var(--accent) !important; }
+
+  .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    margin: 16px !important;
+  }
+  .leaflet-control-zoom a {
+    background: #fff !important;
+    color: var(--text-secondary) !important;
+    border: none !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 18px !important;
+    transition: background 0.2s;
+  }
+  .leaflet-control-zoom a:hover { background: var(--bg-alt) !important; color: var(--text) !important; }
+
+  /* Floating UI Cards on Map */
+  .map-ui-card {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(38,50,56,0.08);
+    z-index: 1000;
+    border: 1px solid var(--border);
+  }
+
+  .map-top-bar {
+    top: 16px; left: 16px; right: 16px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 16px; pointer-events: none;
+    z-index: 1000;
+  }
+
+  .map-search-bar {
+    background: #fff; padding: 8px 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex; align-items: center; gap: 12px; flex: 1; max-width: 400px; pointer-events: auto;
+    border: 1px solid var(--border);
+  }
+  .map-search-input { border: none; outline: none; font-family: inherit; font-size: 14px; color: var(--text); flex: 1; background: transparent; }
+  .map-search-select { border: none; outline: none; font-family: inherit; font-size: 14px; color: var(--accent); font-weight: 600; background: transparent; cursor: pointer; max-width: 160px; }
+  
+  .map-live-status {
+    display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); pointer-events: auto; border: 1px solid var(--border);
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .live-indicator { width: 10px; height: 10px; border-radius: 50%; background: var(--critical); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+
+  .map-controls-panel {
+    top: 80px; right: 16px;
+    padding: 16px;
+    width: 220px;
+    z-index: 1000;
+  }
+  .map-control-title { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 10px; text-transform: uppercase; }
+  
+  .filter-btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .filter-btn {
+    font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: transparent; color: var(--text-secondary);
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .filter-btn:hover { background: var(--bg-alt); }
+  .filter-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+  .layer-toggle-group { display: flex; flex-direction: column; gap: 8px; }
+  .layer-toggle-item {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; font-weight: 500; color: var(--text);
+  }
+  .toggle-switch {
+    width: 36px; height: 20px; background: var(--bg-alt); border-radius: 10px; position: relative; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    background: #fff; border-radius: 50%; transition: transform 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .toggle-switch.on { background: var(--accent); }
+  .toggle-switch.on::after { transform: translateX(16px); }
+
+  .map-legend {
+    bottom: 16px; left: 16px;
+    padding: 14px 18px;
+    z-index: 1000;
+  }
+  .legend-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .legend-items { display: flex; flex-direction: column; gap: 6px; }
+  .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* Tooltip on Hover */
+  .leaflet-tooltip.map-tooltip {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(38,50,56,0.08);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  .leaflet-tooltip.map-tooltip::before { display: none; } /* Hide arrow */
+  .tooltip-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; display: block; }
+  .tooltip-row { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-size: 12px; margin-bottom: 3px; }
+  .tooltip-row b { color: var(--text); font-weight: 600; }
+
+  /* Selected-region popup shown directly on the map */
+  .leaflet-popup.region-popup .leaflet-popup-content-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(38,50,56,0.18);
+    border: 1px solid var(--border);
+    padding: 4px;
+  }
+  .leaflet-popup.region-popup .leaflet-popup-content { margin: 12px 14px; font-family: 'Inter', sans-serif; }
+  .leaflet-popup.region-popup .leaflet-popup-tip { background: #fff; box-shadow: 0 4px 10px rgba(38,50,56,0.1); }
+  .region-popup-title { font-weight: 800; font-size: 14px; margin-bottom: 8px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .region-popup-title::before { content: '📍'; font-size: 12px; }
+  .region-popup-card .tooltip-row { min-width: 190px; }
+
+  /* Custom Map Markers & Permanent Labels */
+  .marker-wrapper { background: transparent; border: none; }
+  .map-marker-circle {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 800;
+  }
+  
+  .city-label-tooltip {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .city-label-inner {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  /* Right Side Intelligence Panel */
+  .selected-zone-panel {
+    position: absolute;
+    top: 80px;
+    right: 16px;
+    width: 320px;
+    max-height: calc(100% - 160px);
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: 24px;
+    display: flex; flex-direction: column;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(38,50,56,0.08);
+    border: 1px solid var(--border);
+    z-index: 1000;
+  }
+  @media (max-width: 768px) {
+    .selected-zone-panel { display: none !important; }
+    .map-controls-panel { display: none !important; }
+  }
+
+  .panel-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .panel-title { font-size: 20px; font-weight: 800; margin: 0; color: var(--text); }
+  .panel-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  
+  .zone-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .info-item { background: #fff; padding: 14px; border-radius: 10px; border: 1px solid var(--border); }
+  .info-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-val { font-size: 18px; font-weight: 700; color: var(--text); }
+
+  .ai-action-box { background: var(--accent-soft); border: 1px solid #DBEAFE; border-radius: 10px; padding: 16px; margin-bottom: 20px; }
+  .ai-action-title { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .ai-action-text { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.4; }
+
+  .priority-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: var(--text); color: #fff; }
+
+  /* Task Action Modal */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(38,50,56,0.4); z-index: 9999;
+    display: none; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: #fff; padding: 24px; border-radius: 16px; width: 100%; max-width: 420px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center;
+    animation: riseIn 0.3s ease;
+  }
+  .modal-icon { width: 48px; height: 48px; background: var(--accent-soft); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .modal-title { font-size: 18px; font-weight: 700; margin: 0 0 8px 0; }
+  .modal-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5; }
+  .modal-actions { display: flex; gap: 12px; }
+  .btn-modal-cancel { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text); font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-modal-confirm { flex: 1; padding: 12px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-modal-confirm:hover { background: #2563EB; }
+
+  /* Responsive behavior for sidebar on small screens */
+  @media (max-width: 920px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    main { padding-left: 40px; }
+    .mobile-toggle { display: flex !important; }
+  }
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://keztqrrtzhxjvstfuqfp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_79OlgP1MibPc_l0l7MN5Qg_dqID04ua";
+
+    const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+    async function checkAuth() {
+      const { data, error } = await supabaseClient.auth.getSession();
+
+      if (error) {
+         console.error("Session error:", error);
+         return;
+      }
+
+      if (!data.session) {
+         console.warn("No authenticated session.");
+         window.location.href = "login.html";
+         return;
+      }
+
+      console.log("Authenticated user:", data.session.user);
+
+      return data.session.user;
+   }
+
+   checkAuth();
+</script>
+<script>
+async function checkUser() {
+    const { data: { user }, error } =
+        await supabaseClient.auth.getUser();
+
+    if (error || !user) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    console.log("Logged-in user:", user);
+
+    const userName =
+        user.user_metadata.full_name ||
+        user.user_metadata.name ||
+        user.email;
+
+    // Name in profile card
+    document.getElementById("profileName").textContent = userName;
+
+    // Initials in avatar
+    const initials = userName
+        .trim()
+        .split(/\s+/)
+        .map(word => word.charAt(0))
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
+
+    document.getElementById("profileAvatar").textContent = initials;
+}
+
+checkUser().then(user => {
+    if (user) {
+        ensureUserProfile(user);
+    }
+});
+async function ensureUserProfile(user) {
+    const fullName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split('@')[0] ||
+        'User';
+
+    const nameParts = fullName.trim().split(/\s+/);
+
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    const { error } = await supabaseClient
+        .from('profiles')
+        .upsert({
+            id: user.id,
+            first_name: firstName,
+            last_name: lastName,
+            work_email: user.email,
+            company: 'HeatShield'
+        }, {
+            onConflict: 'id'
+        });
+
+    if (error) {
+        console.error('Profile sync error:', error);
+        return;
+    }
+
+    console.log('Profile synced successfully');
+}
+</script>
+</head>
+<body>
+<button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation">
+  <i class="fa-solid fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon" id="ic-shield"></div>
+      <div>
+        <div class="brand-title">HEATSHIELD</div>
+        <div class="brand-sub">AI Heat Safety</div>
+      </div>
+    </div>
+
+    <nav id="nav"></nav>
+
+<div class="profile-card">
+    <div class="avatar" id="profileAvatar">SM</div>
+
+    <div>
+        <div class="profile-name" id="profileName">Loading...</div>
+        <div class="profile-loc">Texas Operations</div>
+    </div>
+</div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main>
+
+    <div class="header">
+      <div>
+        <h1 id="pageTitle">Live Heat Risk</h1>
+        <div class="header-meta">
+          <span id="ic-mappin"></span>
+          <span id="pageSubtitle">Real-time heat exposure and safety intelligence across Texas</span>
+          <span class="dot">·</span>
+          <span id="lastUpdated">Last updated 12 sec ago</span>
+        </div>
+      </div>
+      <div class="header-right">
+         <div class="status-online">
+            <span class="status-dot"></span>System Online
+         </div>
+
+         <button class="icon-btn">
+           <span id="ic-bell"></span>
+           <span class="badge-dot"></span>
+         </button>
+
+         <button class="icon-btn" onclick="window.location.href='setting.html'">
+           <span id="ic-settings"></span>
+         </button>
+
+        
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view-container active" id="view-dashboard">
+      <div class="alert-banner" id="alertBanner">
+        <div class="alert-left">
+          <span id="ic-alert1"></span>
+          <div class="alert-text"><b id="alertTitle">2 zones require immediate intervention.</b> <span style="color:var(--text-secondary)">HeatShield has prioritized available safety resources.</span></div>
+        </div>
+        <div class="alert-right">
+          <button class="alert-btn" onclick="switchView('view-priority')">Review Actions</button>
+          <button class="alert-close" id="alertClose"><span id="ic-x"></span></button>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="row">
+        <!-- AI Priority Region Card -->
+        <div class="card priority-card col-fixed" style="width: 100%; max-width: 100%; flex: 1; min-width: 320px;">
+          <div class="card-head">
+            <h2>🤖 AI Priority Region</h2>
+            <span class="card-sub" id="aiRegionSubtext">Highest risk detected</span>
+          </div>
+          <div class="ai-region-card" id="aiPriorityRegionCard"></div>
+        </div>
+      </div>
+
+      <div class="card risk-card card-pad">
+        <div class="risk-left">
+          <div class="card-head">
+            <h2 class="card-title">Overall Heat Risk</h2>
+            <span class="status-badge critical" id="riskBadge"><span class="dot"></span>Critical</span>
+          </div>
+          <div class="risk-badge-large" id="riskLevel" style="color: var(--critical);">HIGH</div>
+          <p class="risk-desc-text" id="riskDesc">Extreme heat conditions detected across selected area.</p>
+          
+          <div class="gauge-container">
+            <div class="gauge-needle" id="gaugeNeedle" style="left: 85%;"></div>
+          </div>
+          <div class="gauge-marks">
+            <span>Safe</span>
+            <span>Elevated</span>
+            <span>Critical</span>
+          </div>
+          <br>
+
+          <div class="risk-highlights">
+            <div class="highlight-item">
+              <div class="highlight-val" id="humidityVal">64%</div>
+              <div class="highlight-label">Humidity</div>
+            </div>
+            <div class="highlight-item">
+              <div class="highlight-val" id="heatIndexVal">48°C</div>
+              <div class="highlight-label">Heat Index</div>
+            </div>
+            <div class="highlight-item">
+              <div class="highlight-val" id="exposedVal">120</div>
+              <div class="highlight-label">Workers Exposed</div>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="switchView('view-heat')">Explore Live Map <span id="ic-chevron"></span></button>
+        </div>
+        <div class="risk-mid">
+          <div class="donut-container">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" r="60" fill="none" stroke="#EDEFF2" stroke-width="16"></circle>
+              <circle cx="80" cy="80" r="60" fill="none" stroke="#EF4444" stroke-width="16" stroke-dasharray="377" stroke-dashoffset="56" stroke-linecap="round" id="donutFill"></circle>
+            </svg>
+            <div class="donut-center">
+              <div class="donut-num" id="donutNum" style="color: var(--critical);">85%</div>
+              <div class="donut-label">Risk Score</div>
+            </div>
+          </div>
+          <div class="risk-legend">
+            <div class="leg-item"><span class="leg-dot" style="background:var(--critical)"></span>Critical Risk</div>
+            <div class="leg-item"><span class="leg-dot" style="background:var(--warning)"></span>Moderate Risk</div>
+            <div class="leg-item"><span class="leg-dot" style="background:var(--safe)"></span>Safe Zone</div>
+          </div>
+        </div>
+        <div class="risk-right">
+          <div class="card-head">
+            <h2 class="card-title">Zone Risk Map</h2>
+            <span class="card-sub">Live Status</span>
+          </div>
+          <div class="zone-list" id="zoneList"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="card priority-card col-grow" style="max-width: calc(100% - 384px);">
+          <h2>AI Priority & Heat Trend</h2>
+          <p class="map-sub">Where should limited resources go first?</p>
+          <div id="priorityList"></div>
+          
+          <div class="card-head" style="margin-top:24px;">
+            <h2 class="card-title">Heat Index (Last 12 Hours)</h2>
+            <span class="card-sub">Peak: 42.6°C</span>
+          </div>
+          <div class="chart-container">
+            <svg id="heatChart" viewBox="0 0 400 150" preserveAspectRatio="none"></svg>
+            <div class="chart-tooltip" id="chartTooltip"></div>
+          </div>
+        </div>
+
+        <div class="card priority-card col-fixed">
+          <h2>Safety Resources</h2>
+          <p class="map-sub">Available allocation</p>
+          <div id="resourceList"></div>
+          <div class="res-note" id="resNote">2 resources currently available for allocation.</div>
+          <button class="btn-outline" style="margin-top:16px;">Manage Resources <span id="ic-arrow3"></span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE HEAT RISK VIEW -->
+    <div class="view-container" id="view-heat">
+      <div class="map-container-wrapper">
+          
+        <!-- Leaflet Map Container -->
+        <div id="texasMap"></div>
+        
+        <!-- Map UI Overlays -->
+        <div class="map-top-bar">
+          <div class="map-search-bar">
+            <span style="color: var(--text-muted); display: flex;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <select class="map-search-select" id="mapSearchSelect">
+              <option value="">🔍 Search Texas location...</option>
+            </select>
+            <span style="color: var(--accent); font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; border-left: 1px solid var(--border); padding-left: 12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span id="selectedLocIndicator">Dallas–Fort Worth</span>
+            </span>
+          </div>
+          <div class="map-live-status">
+            <span class="live-indicator"></span>
+            <span>LIVE</span>
+            <span style="color: var(--text-muted); font-weight: 500;">Updated 12 sec ago</span>
+          </div>
+        </div>
+
+        <div class="map-ui-card map-controls-panel">
+          <div class="map-control-title">Risk Filter</div>
+          <div class="filter-btn-group" id="riskFilterGroup">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="critical">Critical</button>
+            <button class="filter-btn" data-filter="high">High</button>
+            <button class="filter-btn" data-filter="moderate">Moderate</button>
+            <button class="filter-btn" data-filter="low">Low</button>
+          </div>
+          <div class="map-control-title">Layers</div>
+          <div class="layer-toggle-group">
+            <div class="layer-toggle-item">
+              <span>Heat Risk Zones</span>
+              <div class="toggle-switch on" data-layer="heat"></div>
+            </div>
+            <div class="layer-toggle-item">
+              <span>Worker Exposure</span>
+              <div class="toggle-switch on" data-layer="workers"></div>
+            </div>
+            <div class="layer-toggle-item">
+              <span>Resources</span>
+              <div class="toggle-switch" data-layer="resources"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="map-ui-card map-legend">
+          <div class="legend-title">Heat Risk</div>
+          <div class="legend-items">
+            <div class="legend-row"><div class="legend-swatch" style="background: rgba(239, 68, 68, 0.5);"></div>Critical</div>
+            <div class="legend-row"><div class="legend-swatch" style="background: rgba(249, 115, 22, 0.5);"></div>High</div>
+            <div class="legend-row"><div class="legend-swatch" style="background: rgba(234, 179, 8, 0.5);"></div>Moderate</div>
+            <div class="legend-row"><div class="legend-swatch" style="background: rgba(16, 185, 129, 0.5);"></div>Low</div>
+          </div>
+        </div>
+        
+        <div class="selected-zone-panel" id="zoneIntelligencePanel">
+           <div class="panel-head">
+              <div>
+                 <h3 class="panel-title" id="panelTitle">Dallas–Fort Worth</h3>
+                 <div class="panel-subtitle" id="panelSubtitle">Operational Region · North Texas</div>
+              </div>
+              <span class="priority-badge" id="panelPriorityBadge">Priority: #1</span>
+           </div>
+           <div style="margin-bottom: 20px;">
+              <span class="zone-status-pill pill-high" id="panelRiskBadge">CRITICAL</span>
+           </div>
+           <div class="zone-info-grid">
+              <div class="info-item">
+                 <div class="info-label">Heat Index</div>
+                 <div class="info-val" id="panelHeatIndex">43.2°C</div>
+              </div>
+              <div class="info-item">
+                 <div class="info-label">Workers Exposed</div>
+                 <div class="info-val" id="panelWorkers">184</div>
+              </div>
+              <div class="info-item">
+                 <div class="info-label">Temperature</div>
+                 <div class="info-val" id="panelTemp">41.8°C</div>
+              </div>
+              <div class="info-item">
+                 <div class="info-label">Cooling Units</div>
+                 <div class="info-val" id="panelResources">1 / 2</div>
+              </div>
+           </div>
+           <div class="ai-action-box">
+              <div class="ai-action-title">
+                 <span id="ic-ai"></span>
+                 AI Recommended Action
+              </div>
+              <div class="ai-action-text" id="panelAction">
+                 Deploy cooling unit + initiate 15-minute worker rotation.
+              </div>
+           </div>
+           <button class="btn-primary" style="width: 100%; margin-top: 0;" onclick="switchView('view-priority')">View AI Priorities</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI PRIORITY VIEW -->
+    <div class="view-container" id="view-priority">
+      <div class="card task-list-card">
+        <div class="card-head">
+          <div>
+            <h2 class="card-title">AI Priority Tasks</h2>
+            <span class="card-sub" id="prioritySubtext">Sorted by AI Priority Score for Dallas-Fort Worth</span>
+          </div>
+          <span class="status-badge critical" id="priorityRiskBadge"><span class="dot"></span>Critical</span>
+        </div>
+        <div id="taskList"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="taskModal">
+  <div class="modal-box">
+    <div class="modal-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    </div>
+    <h3 class="modal-title" id="modalTitle">Confirm Action</h3>
+    <p class="modal-text" id="modalText">Are you sure you want to mark this safety action as completed? This will update the zone's resource allocation and risk status.</p>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-modal-confirm" id="modalConfirmBtn">✓ Mark Completed</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- Icons mapped to FontAwesome classes ---
+function faIcon(className) { return `<i class="fa-solid ${className}"></i>`; }
+const ICON={
+  shield: () => '<i class="fa-solid fa-shield-halved"></i>',
+  gauge: () => '<i class="fa-solid fa-gauge-high"></i>',
+  map: () => '<i class="fa-solid fa-map-location-dot"></i>',
+  resource: () => '<i class="fa-solid fa-scale-balanced"></i>',
+  safety: () => '<i class="fa-solid fa-clipboard-check"></i>',
+  worker: () => '<i class="fa-solid fa-people-group"></i>',
+  alert: () => '<i class="fa-solid fa-triangle-exclamation"></i>',
+  incident: () => '<i class="fa-solid fa-clock-rotate-left"></i>',
+  settings: () => '<i class="fa-solid fa-gear"></i>',
+  help: () => '<i class="fa-solid fa-circle-question"></i>',
+  users: () => '<i class="fa-solid fa-users"></i>',
+  bell: () => '<i class="fa-solid fa-bell"></i>',
+  mapPin: () => '<i class="fa-solid fa-location-dot"></i>',
+  alertTriangle: () => '<i class="fa-solid fa-triangle-exclamation"></i>',
+  x: () => '<i class="fa-solid fa-xmark"></i>',
+  chevronRight: () => '<i class="fa-solid fa-chevron-right"></i>',
+  arrowRight: () => '<i class="fa-solid fa-arrow-right"></i>',
+  ai: () => '<i class="fa-solid fa-robot"></i>',
+  snowflake: () => '<i class="fa-solid fa-snowflake"></i>'
+};
+
+// --- Central Application State ---
+const appState = {
+  selectedLocationId: null,
+  zones: [],
+  tasks: [],
+  completedActions: []
+};
+async function testFortyGuardAPI() {
+  try {
+    for (const zone of appState.zones) {
+
+      console.log(`🌡️ Fetching FortyGuard data for ${zone.name}...`);
+
+      const response = await fetch('http://localhost:3000/api/fortyguard-test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          latitude: zone.latitude,
+          longitude: zone.longitude,
+          temperature: zone.temperature
+        })
+      });
+
+      const result = await response.json();
+      console.log("🔥 FORTYGUARD PARAMETERS:", result?.data?.parameters);
+
+      console.log(`✅ FortyGuard result for ${zone.name}:`, result);
+
+      if (result.error) {
+        console.error(
+          `❌ FortyGuard failed for ${zone.name}:`,
+          result.message
+        );
+        continue;
+      }
+
+      const fortyGuardTemperature = result?.data?.temperature;
+
+      console.log(
+        `🌡️ ${zone.name} → FortyGuard Temperature: ${fortyGuardTemperature}°C`
+      );
+
+      // 🔥 UPDATE DASHBOARD STATE WITH FORTYGUARD TEMPERATURE
+      if (typeof fortyGuardTemperature === 'number') {
+
+        zone.temperature = fortyGuardTemperature;
+        zone.temp = `${fortyGuardTemperature}°C`;
+        // 🔥 Recalculate risk status using latest FortyGuard temperature
+        if (fortyGuardTemperature >= 40) {
+          zone.status = 'critical';
+          zone.risk = 'Critical';
+        } else if (fortyGuardTemperature >= 38) {
+          zone.status = 'high';
+          zone.risk = 'High';
+        } else if (fortyGuardTemperature >= 35) {
+          zone.status = 'moderate';
+          zone.risk = 'Moderate';
+        } else {
+          zone.status = 'low';
+          zone.risk = 'Low';
+        }
+
+        console.log(
+         `🚨 ${zone.name} risk updated to ${zone.risk} based on ${zone.temp}`
+        );
+
+        console.log(
+          `🔄 ${zone.name} dashboard temperature updated to ${zone.temp}`
+        );
+        // Get actual FortyGuard Heat Index
+const heatIndexData = result?.data?.parameters?.heat_index_celsius;
+
+if (Array.isArray(heatIndexData) && heatIndexData.length > 0) {
+  const latestHeatIndex = heatIndexData[heatIndexData.length - 1];
+
+  console.log(
+    `🔥 ${zone.name} → FortyGuard Heat Index: ${latestHeatIndex}°C`
+  );
+
+  // Update dashboard state
+  zone.heatIndex = `${Number(latestHeatIndex).toFixed(1)}°C`;
+
+  console.log(
+    `🔄 ${zone.name} dashboard heat index updated to ${zone.heatIndex}`
+  );
+}
+      }
+    }
+
+    // 🔥 Re-render dashboard after FortyGuard data is applied
+    renderAll();
+
+    console.log("🔥 All zones processed and dashboard updated.");
+
+  } catch (error) {
+    console.error("❌ FortyGuard connection error:", error);
+  }
+}
+async function getLiveWorkerCount() {
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    console.error('❌ Could not get logged-in user:', userError);
+    return 0;
+  }
+
+  const { count, error } = await supabaseClient
+    .from('workers')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('❌ Failed to count workers:', error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+async function loadZonesFromSupabase() {
+
+  const { data, error } = await supabaseClient
+    .from('zones')
+    .select('*')
+    .order('id', { ascending: true });
+
+  if (error) {
+    console.error("❌ Failed to load zones:", error);
+    alert("Could not load workplace zones from Supabase.");
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    console.warn("⚠️ No zones found in Supabase.");
+    alert("No workplace zones found.");
+    return;
+  }
+
+  console.log("🔥 Zones loaded from Supabase:", data);
+
+  appState.zones = data.map((z, index) => {
+     const latitude = Number(z.latitude);
+     const longitude = Number(z.longitude);
+     const temperature = Number(z.temperature) || 0;
+
+// Calculate initial heat risk from the actual zone temperature
+    let status = 'low';
+
+    if (temperature >= 40) {
+      status = 'critical';
+    } else if (temperature >= 38) {
+      status = 'high';
+    } else if (temperature >= 35) {
+      status = 'moderate';
+    }
+
+    const riskValue =
+      status === 'critical' ? 'Critical' :
+      status === 'high' ? 'High' :
+      status === 'moderate' ? 'Moderate' :
+      'Low';
+
+    return {
+      id: String(z.id),
+      name: z.name || `Zone ${index + 1}`,
+      workers: Number(z.workers) || 0,
+      temp: `${temperature}°C`,
+      heatIndex: `${Number(z.heat_index) || 0}°C`,
+      risk: riskValue,
+      status,
+      coolingUnitsNeeded: Number(z.cooling_units) || 0,
+      coolingUnitsActive: Number(z.cooling_units_active) || 0,
+      waterStations: Number(z.water_stations) || 0,
+      duration: Number(z.exposure_hours) || 0,
+      latitude,
+      longitude,
+      temperature,
+      center: [Number.isFinite(latitude) ? latitude : 31.0, Number.isFinite(longitude) ? longitude : -99.5],
+      radius: 50000
+    };
+  });
+
+  // Automatically focus the highest-risk zone instead of always selecting row 1.
+  const priorityOrder = { critical: 4, high: 3, moderate: 2, low: 1 };
+  const highestRiskZone = [...appState.zones].sort(
+    (a, b) => (priorityOrder[b.status] || 0) - (priorityOrder[a.status] || 0)
+  )[0];
+  appState.selectedLocationId = highestRiskZone?.id || appState.zones[0].id;
+
+  console.log('✅ Dashboard zones:', appState.zones);
+  renderAll();
+}
+function subscribeToZoneChanges() {
+  supabaseClient
+    .channel('dashboard-zones-realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'zones'
+      },
+      (payload) => {
+        console.log('🔄 Zone data changed:', payload);
+
+        loadZonesFromSupabase();
+      }
+    )
+    .subscribe((status) => {
+      console.log('📡 Zone realtime status:', status);
+    });
+}
+
+const STATUS_META = {
+  critical:{text:'#EF4444', bg:'#FEE2E2', label:'Critical', cssVar: 'critical', fill:'rgba(239, 68, 68, 0.45)'},
+  high:{text:'#F97316', bg:'#FFEDD5', label:'High', cssVar: 'warning', fill:'rgba(249, 115, 22, 0.45)'},
+  moderate:{text:'#EAB308', bg:'#FEF9C3', label:'Moderate', cssVar: 'moderate', fill:'rgba(234, 179, 8, 0.45)'},
+  low:{text:'#10B981', bg:'#D1FAE5', label:'Low', cssVar: 'safe', fill:'rgba(16, 185, 129, 0.45)'}
+};
+
+const CHART_DATA = [30, 32, 31, 35, 38, 40, 41, 42.6, 42, 39, 37, 35];
+let map = null;
+let heatLayers = L.layerGroup();
+let workerLayers = L.layerGroup();
+let resourceLayers = L.layerGroup();
+let selectedLocationMarker = null;
+let activeFilter = 'all';
+let zoneCircleLayers = {};
+
+// Texas Boundary Coordinates for Map Focus Masking
+const TEXAS_OUTLINE = [
+  [36.5004, -103.0004], [34.5609, -103.0004], [34.5609, -106.6572], [32.0001, -106.6572],
+  [32.0001, -103.0004], [29.9999, -103.0004], [29.9999, -106.6264], [31.3342, -111.0228],
+  [31.3342, -108.2085], [30.6721, -108.2085], [29.8162, -103.2544], [29.3956, -103.2544],
+  [28.9296, -102.7216], [28.9296, -102.1249], [28.5810, -102.1249], [28.5810, -101.6251],
+  [28.1710, -101.2146], [27.8300, -100.9018], [27.5138, -100.6232], [27.2592, -100.3445],
+  [26.8685, -99.5052], [26.4328, -98.8123], [26.0625, -97.8807], [25.9531, -97.4987],
+  [26.3772, -97.2177], [27.8319, -97.2177], [28.6381, -97.2807], [29.5171, -94.0428],
+  [29.7874, -93.8265], [30.0000, -93.8265], [30.1719, -93.8265], [30.3218, -94.0428],
+  [30.4180, -94.0428], [30.6363, -94.0428], [30.7057, -94.1757], [30.8150, -94.1757],
+  [30.8320, -94.3086], [30.8489, -94.3418], [30.8528, -94.3915], [30.8626, -94.4579],
+  [30.8823, -94.5410], [30.9187, -94.6405], [30.9463, -94.7068], [30.9621, -94.7732],
+  [30.9758, -94.8395], [30.9983, -94.9058], [31.0008, -94.9722], [31.0033, -95.0385],
+  [31.0258, -95.1048], [31.0582, -95.1712], [31.0825, -95.2375], [31.0885, -95.3038],
+  [31.0944, -95.3702], [31.0944, -95.4697], [31.0944, -95.5527], [31.0944, -95.6357],
+  [31.0944, -95.7187], [31.0944, -95.8018], [31.0944, -95.8848], [31.0944, -95.9678],
+  [31.0825, -96.0508], [31.0766, -96.1338], [31.0707, -96.2168], [31.0648, -96.2998],
+  [31.0529, -96.3829], [31.0351, -96.4659], [31.0113, -96.5489], [30.9934, -96.6319],
+  [30.9816, -96.7149], [30.9697, -96.7979], [30.9638, -96.8809], [30.9638, -96.9639],
+  [30.9638, -97.0469], [30.9638, -97.1299], [30.9697, -97.2129], [30.9816, -97.2960],
+  [30.9994, -97.3790], [31.0232, -97.4620], [31.0589, -97.5450], [31.0944, -97.6113],
+  [31.1418, -97.6777], [31.1891, -97.7440], [31.2424, -97.8103], [31.2957, -97.8767],
+  [31.3490, -97.9430], [31.4023, -98.0093], [31.4614, -98.0757], [31.5264, -98.1253],
+  [31.5973, -98.1750], [31.6681, -98.2247], [31.7390, -98.2744], [31.8098, -98.3241],
+  [31.8806, -98.3738], [31.9515, -98.4235], [32.0282, -98.4732], [32.1108, -98.5064],
+  [32.1934, -98.5396], [32.2818, -98.5729], [32.3762, -98.6061], [32.4765, -98.6228],
+  [32.5826, -98.6394], [32.7005, -98.6560], [32.8242, -98.6727], [32.9479, -98.6727],
+  [33.0716, -98.6727], [33.2012, -98.6727], [33.3366, -98.6727], [33.4721, -98.6727],
+  [33.6134, -98.6727], [33.7606, -98.6727], [33.9078, -98.6727], [34.0608, -98.6727],
+  [34.2198, -98.6727], [34.3846, -98.6727], [34.5553, -98.6727], [34.7320, -98.6727],
+  [34.9145, -98.6727], [35.1030, -98.6727], [35.2973, -98.6727], [35.4975, -98.6727],
+  [35.7036, -98.6727], [35.9156, -98.6727], [36.1335, -98.6727], [36.5004, -98.6727],
+  [36.5004, -103.0004]
+];
+
+function calculatePriorityScore(zone) {
+
+  // Use FortyGuard heat index when available.
+  // Otherwise fall back to the actual FortyGuard temperature.
+  const heatIndex =
+    Number.parseFloat(zone.heatIndex) ||
+    Number(zone.temperature) ||
+    0;
+
+  const workers = Number(zone.workers) || 0;
+  const exposureHours = Number(zone.duration) || 0;
+
+  const riskWeight = {
+    critical: 1.0,
+    high: 0.7,
+    moderate: 0.4,
+    low: 0.1
+  };
+
+  const riskFactor = riskWeight[zone.status] ?? 0.1;
+
+  const coolingNeeded = Number(zone.coolingUnitsNeeded) || 0;
+  const coolingActive = Number(zone.coolingUnitsActive) || 0;
+
+  const coolingGap = Math.max(
+    0,
+    coolingNeeded - coolingActive
+  );
+
+  const exposureScore =
+    (heatIndex * workers * exposureHours) / 100;
+
+  const resourceBonus = coolingGap * 5;
+
+  const score = Math.round(
+    (exposureScore * riskFactor) + resourceBonus
+  );
+
+  return Math.min(Math.max(score, 10), 99);
+}
+
+function generateTasks(zone) {
+  const tasks = [];
+  const hi = Number.parseFloat(zone.heatIndex) || 0;
+  const temp = Number.parseFloat(zone.temp) || 0;
+  const workers = Number(zone.workers) || 0;
+  const duration = Number(zone.duration) || 0;
+  const coolingNeeded = Number(zone.coolingUnitsNeeded) || 0;
+  const coolingActive = Number(zone.coolingUnitsActive) || 0;
+  const waterStations = Number(zone.waterStations) || 0;
+  const riskWeight = { critical: 1.0, high: 0.8, moderate: 0.5, low: 0.2 };
+  const riskFactor = riskWeight[zone.status] ?? 0.2;
+  const urgency = Math.min(100, Math.round((hi * 1.2) + (workers * 0.25) + (duration * 2) + (riskFactor * 20)));
+
+  if (coolingNeeded > coolingActive) {
+    const gap = coolingNeeded - coolingActive;
+    tasks.push({ id:`task-cool-${zone.id}`, title:`Deploy Cooling Unit #${coolingActive + 1}`, desc:`Reason: Heat index ${zone.heatIndex}, ${workers} workers exposed, ${gap} cooling unit(s) still needed.`, score:Math.min(99, Math.max(50, Math.round(urgency + gap * 8))), type:'cooling', completed:false });
+  } else {
+    tasks.push({ id:`task-maintain-cool-${zone.id}`, title:'Maintain active cooling units', desc:`Reason: ${coolingActive} cooling unit(s) currently active. Continue monitoring equipment performance.`, score:Math.min(60, Math.max(20, Math.round(urgency * .45))), type:'monitor', completed:false });
+  }
+
+  if (zone.status === 'critical' || zone.status === 'high' || duration >= 6) {
+    tasks.push({ id:`task-rotate-${zone.id}`, title:'Initiate 15-minute worker rotation', desc:`Reason: ${workers} workers exposed for approximately ${duration} hours under ${zone.status} heat conditions.`, score:Math.min(99, Math.max(55, Math.round(urgency + duration * 2))), type:'rotation', completed:false });
+  } else {
+    tasks.push({ id:`task-rotate-light-${zone.id}`, title:'Monitor worker fatigue', desc:`Reason: Current exposure duration is ${duration} hours with ${workers} workers.`, score:Math.min(55, Math.max(20, Math.round(urgency * .4))), type:'monitor', completed:false });
+  }
+
+  if (waterStations < 2) {
+    const shortage = 2 - waterStations;
+    tasks.push({ id:`task-water-${zone.id}`, title:'Increase hydration frequency', desc:`Reason: Only ${waterStations} water station(s) available for ${workers} workers in ${zone.status} conditions.`, score:Math.min(99, Math.max(50, Math.round(urgency * .8 + shortage * 8))), type:'hydration', completed:false });
+  } else {
+    tasks.push({ id:`task-water-restock-${zone.id}`, title:'Restock water stations', desc:`Reason: ${waterStations} water station(s) currently available. Maintain hydration availability.`, score:Math.min(55, Math.max(20, Math.round(urgency * .4))), type:'monitor', completed:false });
+  }
+
+  if (hi >= 38 || temp >= 38) {
+    tasks.push({ id:`task-schedule-${zone.id}`, title:'Move high-exposure tasks to cooler hours', desc:`Reason: Temperature is ${zone.temp} and heat index is ${zone.heatIndex}. Reduce prolonged peak-heat exposure.`, score:Math.min(99, Math.max(55, Math.round(urgency * .85))), type:'schedule', completed:false });
+  } else {
+    tasks.push({ id:`task-schedule-normal-${zone.id}`, title:'Continue standard operational schedule', desc:`Reason: Current heat index is ${zone.heatIndex}, below the elevated scheduling threshold.`, score:Math.min(50, Math.max(15, Math.round(urgency * .35))), type:'monitor', completed:false });
+  }
+
+  if (workers > 50 && (zone.status === 'critical' || zone.status === 'high')) {
+    tasks.push({ id:`task-shade-${zone.id}`, title:'Activate shaded/rest recovery area', desc:`Reason: ${workers} workers are exposed to ${zone.status} heat conditions.`, score:Math.min(99, Math.max(55, Math.round(urgency * .75))), type:'shade', completed:false });
+  } else {
+    tasks.push({ id:`task-shade-standby-${zone.id}`, title:'Keep rest areas on standby', desc:`Reason: Current workforce (${workers}) and risk level (${zone.status}) do not require immediate activation.`, score:Math.min(45, Math.max(15, Math.round(urgency * .3))), type:'monitor', completed:false });
+  }
+
+  appState.completedActions.forEach(ca => {
+    if (ca.zoneId === zone.id) {
+      const task = tasks.find(t => t.type === ca.type);
+      if (task) task.completed = true;
+    }
+  });
+  tasks.sort((a,b) => b.score - a.score);
+  return tasks;
+}
+async function completeTask(taskId) {
+  const zone = appState.zones.find(
+    z => z.id === appState.selectedLocationId
+  );
+
+  const task = appState.tasks.find(
+    t => t.id === taskId
+  );
+
+  if (!task || task.completed || !zone) return;
+
+  const priorityScore = calculatePriorityScore(zone);
+
+  // Generate unique audit ID
+  const auditId =
+    'HS-' +
+    Date.now().toString().slice(-8);
+
+  // Save completed action to Supabase
+  const { data, error } = await supabaseClient
+    .from('safety_actions')
+    .insert([{
+      zone_id: Number(zone.id),
+      zone_name: zone.name,
+
+      action_type: task.type,
+      action_title: task.title,
+      action_description: task.desc,
+
+      risk_level: zone.risk,
+      heat_index: parseFloat(zone.heatIndex) || 0,
+      temperature: parseFloat(zone.temp) || 0,
+
+      workers_exposed: Number(zone.workers) || 0,
+      exposure_hours: Number(zone.duration) || 0,
+
+      priority_score: priorityScore,
+
+      status: 'Completed',
+
+      completed_at: new Date().toISOString(),
+
+      audit_id: auditId
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error(
+      '❌ Failed to save completed safety action:',
+      error
+    );
+
+    alert(
+      'Could not save the completed safety action. Please try again.'
+    );
+
+    return;
+  }
+
+  console.log(
+    '✅ Safety action saved to Supabase:',
+    data
+  );
+
+  // Keep local dashboard state synchronized
+  task.completed = true;
+
+  appState.completedActions.push({
+    zoneId: zone.id,
+    type: task.type,
+    timestamp: new Date(),
+    auditId: auditId
+  });
+
+  // Existing dashboard behavior
+  if (task.type === 'cooling') {
+
+    zone.coolingUnitsActive++;
+
+    if (zone.status === 'critical') {
+
+      zone.status = 'high';
+      zone.risk = 'High';
+
+      zone.heatIndex =
+        (parseFloat(zone.heatIndex) - 2.5)
+          .toFixed(1) + '°C';
+
+      zone.temp =
+        (parseFloat(zone.temp) - 2.0)
+          .toFixed(1) + '°C';
+
+    } else if (zone.status === 'high') {
+
+      zone.status = 'moderate';
+      zone.risk = 'Moderate';
+
+      zone.heatIndex =
+        (parseFloat(zone.heatIndex) - 2.0)
+          .toFixed(1) + '°C';
+
+      zone.temp =
+        (parseFloat(zone.temp) - 1.5)
+          .toFixed(1) + '°C';
+    }
+
+  } else if (task.type === 'rotation') {
+
+    zone.duration =
+      Math.max(1, zone.duration - 2);
+  }
+
+  zone.score = calculatePriorityScore(zone);
+
+  renderAll();
+
+  console.log(
+    `✅ ${task.title} completed for ${zone.name}`
+  );
+
+  console.log(
+    `📋 Audit ID: ${auditId}`
+  );
+}
+
+// --- UI Placeholders ---
+document.getElementById('ic-shield').innerHTML = ICON.shield();
+document.getElementById('ic-mappin').innerHTML = `<i class="fa-solid fa-location-dot" style="font-size:14px;"></i>`;
+document.getElementById('ic-bell').innerHTML = ICON.bell();
+document.getElementById('ic-settings').innerHTML = ICON.settings();
+document.getElementById('ic-alert1').innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size:18px; color:var(--critical);"></i>`;
+document.getElementById('ic-x').innerHTML = ICON.x();
+document.getElementById('ic-chevron').innerHTML = ICON.chevronRight();
+document.getElementById('ic-arrow3').innerHTML = ICON.arrowRight();
+document.getElementById('ic-ai').innerHTML = ICON.ai();
+
+// --- Navigation (Matching Setting's structure) ---
+const NAV_ITEMS = [
+  {label:'Dashboard', icon:ICON.gauge, viewId: 'view-dashboard', title: 'Dashboard', subtitle: 'Texas Operations Hub'},
+  {label:'Heat Map', icon:ICON.map, viewId: 'view-heat', title: 'Live Heat Risk', subtitle: 'Real-time heat exposure and safety intelligence across Texas'},
+  {label:'Resource Allocation', icon:ICON.resource, viewId: 'external-resource', title: 'Safety Resources', subtitle: 'Texas Operations Hub'},
+  {label:'Safety Actions', icon:ICON.safety, viewId: 'view-dashboard', title: 'Immediate Safety Actions', subtitle: 'Texas Operations Hub'},
+  {label:'Worker Groups', icon:ICON.worker, viewId: 'view-dashboard', title: 'Safety Resources', subtitle: 'Texas Operations Hub'},
+  {label:'Alerts', icon:ICON.alert, viewId: 'view-dashboard', title: 'Today\'s Heat Event', subtitle: 'Texas Operations Hub'},
+  {label:'Incident History', icon:ICON.incident, viewId: 'view-dashboard', title: 'Reports & Analytics', subtitle: 'Texas Operations Hub'}
+];
+
+const navEl = document.getElementById('nav');
+const opsLabel = document.createElement('div');
+opsLabel.className = 'nav-label';
+opsLabel.textContent = 'Operations';
+navEl.appendChild(opsLabel);
+
+NAV_ITEMS.forEach((item, index) => {
+  const btn = document.createElement('button');
+  // Add active class to the first item (Dashboard) by default
+  btn.className = 'nav-item' + (index === 0 ? ' active' : '');
+  btn.innerHTML = '<span class="nav-icon">' + item.icon() + '</span><span>' + item.label + '</span>';
+  
+  btn.addEventListener('click', () => {
+    // Handle external links explicitly based on label to match Setting's exact routing
+    if (item.label === 'Resource Allocation') { window.location.href = 'Resource.html'; return; }
+    if (item.label === 'Safety Actions') { window.location.href = 'safety.html'; return; }
+    if (item.label === 'Worker Groups') { window.location.href = 'Worker.html'; return; }
+    if (item.label === 'Alerts') { window.location.href = 'Alert.html'; return; }
+    if (item.label === 'Incident History') { window.location.href = 'Incident.html'; return; }
+
+    switchView(item.viewId, item.title, item.subtitle, btn);
+  });
+  navEl.appendChild(btn);
+});
+
+const settingsLabel = document.createElement('div');
+settingsLabel.className = 'nav-label';
+settingsLabel.textContent = 'System';
+navEl.appendChild(settingsLabel);
+
+// Match exact labels from Setting Page
+const systemItems = [
+  {label:'Settings', icon:ICON.settings, url: 'setting.html'},
+  {label:'Help', icon:ICON.help, url: 'help.html'}
+];
+
+systemItems.forEach(sysItem => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-item';
+    btn.innerHTML = '<span class="nav-icon">' + sysItem.icon() + '</span><span>' + sysItem.label + '</span>';
+
+    btn.addEventListener('click', () => {
+        window.location.href = sysItem.url;
+    });
+
+    navEl.appendChild(btn);
+});
+
+function switchView(viewId, title, subtitle, btnEl) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  else {
+    const navItem = NAV_ITEMS.find(n => n.viewId === viewId);
+    if (navItem) { const idx = NAV_ITEMS.indexOf(navItem); document.querySelectorAll('.nav-item')[idx].classList.add('active'); }
+  }
+  document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+  document.getElementById('pageTitle').textContent = title;
+  document.getElementById('pageSubtitle').textContent = subtitle;
+  if (viewId === 'view-heat') { setTimeout(() => { initHeatMap(); }, 50); }
+  if (viewId === 'view-priority') renderTaskList();
+  if (viewId === 'view-dashboard') renderChart();
+}
+
+// --- Render Functions ---
+async function renderAll() {
+  const zone = appState.zones.find(z => z.id === appState.selectedLocationId);
+  if (!zone) return;
+  appState.tasks = generateTasks(zone);
+await renderStats(zone);
+  renderOverallRisk(zone);
+  renderZoneList();
+  renderPriority(zone);
+  renderResources(zone);
+  updateMapSelection(zone);
+  updateZoneIntelligencePanel(zone);
+  renderTaskList();
+  renderAIPriorityRegion();
+  populateSearch();
+}
+
+async function renderStats(zone) {
+  const liveWorkerCount = await getLiveWorkerCount();
+  const statsGrid = document.getElementById('statsGrid');
+  const meta = STATUS_META[zone.status];
+  const pendingActions = appState.tasks.filter(t => !t.completed).length;
+  const criticalZones = appState.zones.filter(z => z.status === 'critical').length;
+  
+  // Find AI Priority Region
+  const aiRegion = [...appState.zones].map(z => ({...z, score: calculatePriorityScore(z)})).sort((a,b) => b.score - a.score)[0];
+
+  const stats = [
+    {icon: ICON.users, iconClass: 'users', label: 'WORKERS EXPOSED', value: liveWorkerCount, sub: `<span class="trend-up">+${Math.floor(Math.random() * 5 + 1)}%</span> vs last week`},
+    {icon: ICON.alertTriangle, iconClass: 'alert', label: 'CRITICAL ZONES', value: criticalZones, sub: `<span class="trend-down">+${criticalZones}</span> active alerts`},
+    {icon: ICON.bell, iconClass: 'bell', label: 'PENDING ACTIONS', value: pendingActions, sub: `<span class="trend-down">${pendingActions}</span> requires action`},
+    {icon: ICON.ai, iconClass: 'ai', label: 'AI PRIORITY SCORE', value: calculatePriorityScore(zone), sub: `<span class="trend-up">${aiRegion.name}</span> is highest risk`}
+  ];
+
+  statsGrid.innerHTML = '';
+  stats.forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'card stat-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.innerHTML = `<div class="stat-icon ${d.iconClass}">${d.icon()}</div><div class="stat-label">${d.label}</div><div class="stat-value">${d.value}</div><div class="stat-sub">${d.sub}</div>`;
+    statsGrid.appendChild(card);
+  });
+}
+
+function renderOverallRisk(zone) {
+  const meta = STATUS_META[zone.status];
+  const riskBadge = document.getElementById('riskBadge');
+  const riskLevel = document.getElementById('riskLevel');
+  const donutFill = document.getElementById('donutFill');
+  const donutNum = document.getElementById('donutNum');
+  const gaugeNeedle = document.getElementById('gaugeNeedle');
+  riskBadge.className = `status-badge ${meta.cssVar}`;
+  riskBadge.innerHTML = `<span class="dot"></span>${meta.label}`;
+  riskLevel.style.color = meta.text;
+  riskLevel.textContent = zone.risk.toUpperCase();
+  donutNum.style.color = meta.text;
+  donutFill.style.stroke = meta.text;
+  const score = calculatePriorityScore(zone);
+  const circumference = 377;
+  const offset = circumference - (score / 100) * circumference;
+  donutFill.style.strokeDashoffset = offset;
+  donutNum.textContent = `${score}%`;
+  gaugeNeedle.style.left = `${score}%`;
+  document.getElementById('humidityVal').textContent = `${40 + zone.duration * 3}%`;
+  document.getElementById('heatIndexVal').textContent = zone.heatIndex;
+  document.getElementById('exposedVal').textContent = zone.workers;
+  document.getElementById('riskDesc').textContent = `Extreme heat conditions detected in ${zone.name}.`;
+}
+
+function renderZoneList() {
+  const zoneList = document.getElementById('zoneList');
+  zoneList.innerHTML = '';
+  appState.zones.slice(0, 6).forEach(z => {
+    const row = document.createElement('div');
+    row.className = 'zone-row';
+    const pillClass = z.status === 'critical' ? 'pill-high' : z.status === 'high' ? 'pill-elevated' : z.status === 'moderate' ? 'pill-moderate' : 'pill-safe';
+    row.innerHTML = `<div class="zone-info"><div class="zone-name-row">${z.name}</div><div class="zone-meta-row">${z.workers} workers · ${z.heatIndex}</div></div><span class="zone-status-pill ${pillClass}">${z.risk}</span>`;
+    row.onclick = () => selectLocation(z.id);
+    zoneList.appendChild(row);
+  });
+}
+
+function renderPriority(zone) {
+  const priorityList = document.getElementById('priorityList');
+  priorityList.innerHTML = '';
+  const sortedZones = [...appState.zones].map(z => ({ ...z, score: calculatePriorityScore(z) })).sort((a,b) => b.score - a.score).slice(0, 3);
+  sortedZones.forEach((p, i) => {
+    const barColor = p.score > 85 ? 'var(--critical)' : p.score > 70 ? 'var(--warning)' : 'var(--safe)';
+    const item = document.createElement('div');
+    item.className = 'p-item';
+    item.style.animationDelay = (i * 0.12) + 's';
+    item.innerHTML = `<div class="p-top"><div><span class="p-rank">${i+1}</span><span class="p-zone">${p.name}</span></div><div><div class="p-score-label">Priority Score</div><div class="p-score">${p.score}/100</div></div></div><div class="p-meta">${p.temp} · ${p.workers} workers</div><div class="progress-track"><div class="progress-fill" style="width: ${p.score}%; background:${barColor}"></div></div>`;
+    priorityList.appendChild(item);
+  });
+}
+
+function renderResources(zone) {
+  const resourceList = document.getElementById('resourceList');
+  resourceList.innerHTML = '';
+  const resources = [
+    {label:'Cooling Units', current: zone.coolingUnitsActive, total: zone.coolingUnitsNeeded + zone.coolingUnitsActive, color:'var(--warning)'},
+    {label:'Water Stations', current: zone.waterStations, total: 5, color:'var(--accent)'},
+    {label:'Rest Areas', current: 2, total: 2, color:'var(--safe)'}
+  ];
+  resources.forEach(r => {
+    const pct = r.total > 0 ? (r.current / r.total) * 100 : 100;
+    const row = document.createElement('div');
+    row.className = 'res-row';
+    row.innerHTML = `<div class="res-top"><span class="res-label">${r.label}</span><span class="res-count">${r.current} / ${r.total}</span></div><div class="progress-track"><div class="progress-fill" style="width: ${pct}%; background:${r.color}"></div></div>`;
+    resourceList.appendChild(row);
+  });
+  const pendingActions = appState.tasks.filter(t => !t.completed).length;
+  document.getElementById('resNote').textContent = `${pendingActions} pending safety actions for ${zone.name}.`;
+}
+
+function renderChart() {
+  const svg = document.getElementById('heatChart');
+  const tooltip = document.getElementById('chartTooltip');
+  const W = 400, H = 150;
+  const maxVal = Math.max(...CHART_DATA) + 5;
+  const minVal = Math.min(...CHART_DATA) - 5;
+  const stepX = W / (CHART_DATA.length - 1);
+  let pathD = '';
+  let areaD = `M 0 ${H} `;
+  CHART_DATA.forEach((val, i) => {
+    const x = i * stepX;
+    const y = H - ((val - minVal) / (maxVal - minVal)) * H;
+    if (i === 0) pathD += `M ${x} ${y}`;
+    else {
+      const prevX = (i - 1) * stepX;
+      const prevY = H - ((CHART_DATA[i-1] - minVal) / (maxVal - minVal)) * H;
+      const cpX1 = prevX + stepX / 2;
+      const cpX2 = x - stepX / 2;
+      pathD += ` C ${cpX1} ${prevY}, ${cpX2} ${y}, ${x} ${y}`;
+    }
+    areaD += `L ${x} ${y} `;
+  });
+  areaD += `L ${W} ${H} Z`;
+  svg.innerHTML = `<defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(59,130,246,0.2)"/><stop offset="100%" stop-color="rgba(59,130,246,0)"/></linearGradient></defs><path d="${areaD}" fill="url(#chartGrad)" /><path d="${pathD}" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />${CHART_DATA.map((val, i) => { const x = i * stepX; const y = H - ((val - minVal) / (maxVal - minVal)) * H; return `<circle cx="${x}" cy="${y}" r="3" fill="#fff" stroke="#3B82F6" stroke-width="2" class="chart-point" data-val="${val}" data-x="${x}" data-y="${y}" />`; }).join('')}`;
+  svg.querySelectorAll('.chart-point').forEach(p => {
+    p.addEventListener('mouseenter', () => {
+      tooltip.innerHTML = `${p.getAttribute('data-val')}°C`;
+      tooltip.style.left = `${(p.getAttribute('data-x') / W) * 100}%`;
+      tooltip.style.top = `${(p.getAttribute('data-y') / H) * 100}%`;
+      tooltip.style.opacity = 1;
+    });
+    p.addEventListener('mouseleave', () => tooltip.style.opacity = 0);
+  });
+}
+
+function renderTaskList() {
+  const taskList = document.getElementById('taskList');
+  const zone = appState.zones.find(z => z.id === appState.selectedLocationId);
+  const meta = STATUS_META[zone.status];
+  document.getElementById('prioritySubtext').textContent = `Sorted by AI Priority Score for ${zone.name}`;
+  document.getElementById('priorityRiskBadge').className = `status-badge ${meta.cssVar}`;
+  document.getElementById('priorityRiskBadge').innerHTML = `<span class="dot"></span>${zone.risk}`;
+  taskList.innerHTML = '';
+  if (appState.tasks.length === 0) { taskList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">No tasks generated. Select a location.</div>'; return; }
+  appState.tasks.forEach((task, i) => {
+    const item = document.createElement('div');
+    item.className = 'task-item' + (task.completed ? ' completed' : '');
+    item.style.animationDelay = (i * 0.1) + 's';
+    const scoreColor = task.score > 85 ? 'var(--critical)' : task.score > 60 ? 'var(--warning)' : 'var(--safe)';
+    const priorityRank = i + 1;
+    let actionText = 'Take Action';
+    let taskStatusTag = '';
+    if (task.completed) {
+      actionText = 'Completed';
+      const completion = appState.completedActions.find(ca => ca.zoneId === zone.id && ca.type === task.type);
+      const timeStr = completion ? new Date(completion.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+      taskStatusTag = `<span class="task-status-tag">✓ Completed at ${timeStr}</span>`;
+    }
+    item.innerHTML = `<div class="task-score" style="color: ${scoreColor}">${task.score}</div><div class="task-info"><div class="task-title">Priority ${priorityRank}: ${task.title} ${taskStatusTag}</div><div class="task-desc">${task.desc}</div></div><button class="action-btn" data-task-id="${task.id}" ${task.completed ? 'disabled' : ''}>${actionText}</button>`;
+    if (!task.completed) { item.querySelector('button').addEventListener('click', () => openTaskModal(task.id)); }
+    taskList.appendChild(item);
+  });
+}
+
+async function renderAIPriorityRegion() {
+  const liveWorkerCount = await getLiveWorkerCount();
+  const card = document.getElementById('aiPriorityRegionCard');
+  const subtext = document.getElementById('aiRegionSubtext');
+  const sortedZones = [...appState.zones].map(z => ({ ...z, score: calculatePriorityScore(z) })).sort((a,b) => b.score - a.score);
+  const topZone = sortedZones[0];
+  const meta = STATUS_META[topZone.status];
+  
+  subtext.innerHTML = `Highest risk detected · <span style="color: ${meta.text}; font-weight: 700;">${topZone.risk.toUpperCase()}</span>`;
+  
+  card.innerHTML = `
+    <div class="ai-region-top">
+      <div>
+        <h3 class="ai-region-name">${topZone.name}</h3>
+        <span class="zone-status-pill ${topZone.status === 'critical' ? 'pill-high' : topZone.status === 'high' ? 'pill-elevated' : topZone.status === 'moderate' ? 'pill-moderate' : 'pill-safe'}">${topZone.risk} Risk</span>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">AI PRIORITY SCORE</div>
+        <div style="font-size: 24px; font-weight: 800; color: ${meta.text};">${topZone.score}</div>
+      </div>
+    </div>
+    <div class="ai-region-stats">
+      <div class="ai-region-stat">
+        <div class="ai-region-stat-label">Workers Exposed</div>
+        <div class="ai-region-stat-val">${liveWorkerCount}</div>
+      </div>
+      <div class="ai-region-stat">
+        <div class="ai-region-stat-label">Heat Index</div>
+        <div class="ai-region-stat-val">${topZone.heatIndex}</div>
+      </div>
+      <div class="ai-region-stat">
+        <div class="ai-region-stat-label">Temperature</div>
+        <div class="ai-region-stat-val">${topZone.temp}</div>
+      </div>
+      <div class="ai-region-stat">
+        <div class="ai-region-stat-label">Exposure Duration</div>
+        <div class="ai-region-stat-val">${topZone.duration} hrs</div>
+      </div>
+    </div>
+    <button class="btn-primary" style="width: 100%; margin-top: 0;" onclick="selectLocation('${topZone.id}'); switchView('view-heat')">View on Live Map</button>
+  `;
+}
+
+function updateZoneIntelligencePanel(zone) {
+  const meta = STATUS_META[zone.status];
+  const pillClass = zone.status === 'critical' ? 'pill-high' : zone.status === 'high' ? 'pill-elevated' : zone.status === 'moderate' ? 'pill-moderate' : 'pill-safe';
+  document.getElementById('panelTitle').textContent = zone.name;
+  document.getElementById('panelSubtitle').textContent = `Operational Region · Texas`;
+  document.getElementById('panelRiskBadge').className = `zone-status-pill ${pillClass}`;
+  document.getElementById('panelRiskBadge').textContent = zone.risk.toUpperCase();
+  document.getElementById('panelHeatIndex').textContent = zone.heatIndex;
+  document.getElementById('panelWorkers').textContent = zone.workers;
+  document.getElementById('panelTemp').textContent = zone.temp;
+  document.getElementById('panelResources').textContent = `${zone.coolingUnitsActive} / ${zone.coolingUnitsNeeded + zone.coolingUnitsActive}`;
+  const score = calculatePriorityScore(zone);
+  document.getElementById('panelPriorityBadge').textContent = `Score: ${score}/100`;
+  document.getElementById('panelAction').textContent = appState.tasks.find(t => !t.completed)?.title || 'No immediate actions required.';
+}
+
+function populateSearch() {
+  const select = document.getElementById('mapSearchSelect');
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">🔍 Search Texas location...</option>';
+  appState.zones.forEach(z => {
+    const opt = document.createElement('option');
+    opt.value = z.id;
+    opt.textContent = z.name;
+    if (z.id === appState.selectedLocationId) opt.selected = true;
+    select.appendChild(opt);
+  });
+  if (currentVal && currentVal !== appState.selectedLocationId) select.value = currentVal;
+}
+
+// --- Leaflet Map Logic ---
+function initHeatMap() {
+  if (map !== null) {
+    setTimeout(() => map.invalidateSize(), 100);
+    return;
+  }
+  
+  map = L.map('texasMap', {
+    center: [31.0, -99.5],
+    zoom: 6,
+    minZoom: 5,
+    maxZoom: 12,
+    maxBounds: [[24.5, -108.5], [38.5, -91.5]],
+    zoomControl: true,
+    attributionControl: true
+  });
+
+  // Google-Maps-style basemap: shows roads, highways, cities, and place labels
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20
+  }).addTo(map);
+
+  // Create a mask that covers the whole world, but cuts out Texas to emphasize it
+  const worldOuterRing = [[-90, -180], [-90, 180], [90, 180], [90, -180]];
+  const texasMaskPolygon = L.polygon([worldOuterRing, TEXAS_OUTLINE], {
+    fillColor: '#FFFFFF',
+    fillOpacity: 0.85,
+    color: '#FFFFFF',
+    weight: 0,
+    interactive: false
+  });
+  texasMaskPolygon.addTo(map);
+
+  // Draw the Texas state outline border
+  L.polyline(TEXAS_OUTLINE, {
+    color: '#263238',
+    weight: 3,
+    fill: false
+  }).addTo(map);
+
+  // Fit map to show the entire state of Texas with comfortable padding on load
+  map.fitBounds(TEXAS_OUTLINE, { padding: [48, 48] });
+
+  heatLayers.addTo(map);
+  workerLayers.addTo(map);
+
+  renderMapZones();
+  
+  document.getElementById('mapSearchSelect').addEventListener('change', (e) => { if (e.target.value) selectLocation(e.target.value); });
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.getAttribute('data-filter');
+      renderMapZones();
+    };
+  });
+  document.querySelectorAll('.toggle-switch').forEach(toggle => {
+    toggle.onclick = (e) => {
+      toggle.classList.toggle('on');
+      const layer = toggle.getAttribute('data-layer');
+      if (layer === 'heat') { if (toggle.classList.contains('on')) heatLayers.addTo(map); else map.removeLayer(heatLayers); } 
+      else if (layer === 'workers') { if (toggle.classList.contains('on')) workerLayers.addTo(map); else map.removeLayer(workerLayers); } 
+      else if (layer === 'resources') { if (toggle.classList.contains('on')) resourceLayers.addTo(map); else map.removeLayer(resourceLayers); }
+    };
+  });
+}
+
+function regionPopupHtml(z) {
+  const meta = STATUS_META[z.status];
+  const score = calculatePriorityScore(z);
+  return `<div class="region-popup-card">
+    <div class="region-popup-title">${z.name}</div>
+    <div class="tooltip-row"><span>Risk</span><b style="color:${meta.text}">${z.risk.toUpperCase()}</b></div>
+    <div class="tooltip-row"><span>Temperature</span><b>${z.temp}</b></div>
+    <div class="tooltip-row"><span>Heat Index</span><b>${z.heatIndex}</b></div>
+    <div class="tooltip-row"><span>Workers Exposed</span><b>${z.workers}</b></div>
+    <div class="tooltip-row"><span>AI Priority Score</span><b>${score}</b></div>
+  </div>`;
+}
+
+function renderMapZones() {
+  heatLayers.clearLayers();
+  workerLayers.clearLayers();
+  resourceLayers.clearLayers();
+  zoneCircleLayers = {};
+  if (selectedLocationMarker) { map.removeLayer(selectedLocationMarker); selectedLocationMarker = null; }
+
+  appState.zones.forEach(z => {
+    const meta = STATUS_META[z.status];
+    if (activeFilter !== 'all' && z.status !== activeFilter) return;
+
+    const isSelected = z.id === appState.selectedLocationId;
+    const heatCircle = L.circle(z.center, {
+      color: meta.text,           
+      weight: isSelected ? 3 : 2,                  
+      opacity: 0.9,
+      fillColor: meta.text, 
+      fillOpacity: isSelected ? 0.65 : 0.4,           
+      radius: z.radius
+    });
+
+    heatCircle.bindTooltip(`<div class="city-label-inner">${z.name}</div>`, {
+      permanent: true,
+      direction: 'center',
+      className: 'city-label-tooltip'
+    });
+
+    heatCircle.bindTooltip(`<div class="map-tooltip"><span class="tooltip-title">${z.name}</span><div class="tooltip-row"><span>Temperature:</span> <b>${z.temp}</b></div><div class="tooltip-row"><span>Heat Index:</span> <b>${z.heatIndex}</b></div><div class="tooltip-row"><span>Risk:</span> <b style="color:${meta.text}">${z.risk.toUpperCase()}</b></div><div class="tooltip-row"><span>Workers exposed:</span> <b>${z.workers}</b></div></div>`, { className: 'map-tooltip', sticky: true });
+
+    heatCircle.bindPopup(regionPopupHtml(z), { className: 'region-popup', closeOnClick: false, autoClose: false, closeButton: true });
+
+    heatCircle.on('click', () => selectLocation(z.id));
+    heatCircle.on('mouseover', function () {
+      if (z.id !== appState.selectedLocationId) this.setStyle({ fillOpacity: 0.58, weight: 3 });
+      this.bringToFront();
+    });
+    heatCircle.on('mouseout', function () {
+      if (z.id !== appState.selectedLocationId) this.setStyle({ fillOpacity: 0.4, weight: 2 });
+    });
+    heatLayers.addLayer(heatCircle);
+    zoneCircleLayers[z.id] = heatCircle;
+
+    const workerMarker = L.divIcon({
+      className: 'marker-wrapper',
+      html: `<div class="map-marker-circle" style="background: ${meta.text}">${z.workers}</div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+    const wMarker = L.marker(z.center, { icon: workerMarker, zIndexOffset: 1000 });
+    wMarker.on('click', () => selectLocation(z.id));
+    workerLayers.addLayer(wMarker);
+  });
+
+  const selectedZone = appState.zones.find(z => z.id === appState.selectedLocationId);
+  if (selectedZone) {
+    selectedLocationMarker = L.circle(selectedZone.center, {
+      color: '#3B82F6',
+      fillColor: 'transparent',
+      radius: selectedZone.radius + 5000,
+      weight: 4,
+      dashArray: '5, 5'
+    }).addTo(map);
+    if (zoneCircleLayers[selectedZone.id]) zoneCircleLayers[selectedZone.id].bringToFront();
+    selectedLocationMarker.bringToFront();
+  }
+}
+
+function updateMapSelection(zone) {
+  if (!map) return;
+  if (selectedLocationMarker) map.removeLayer(selectedLocationMarker);
+  selectedLocationMarker = L.circle(zone.center, {
+    color: '#3B82F6',
+    fillColor: 'transparent',
+    radius: zone.radius + 5000,
+    weight: 4,
+    dashArray: '5, 5'
+  }).addTo(map);
+
+  // Reset all region overlays, then give the selected region a stronger highlighted look
+  Object.keys(zoneCircleLayers).forEach(id => {
+    const layer = zoneCircleLayers[id];
+    if (id === zone.id) {
+      layer.setStyle({ fillOpacity: 0.65, weight: 3 });
+      layer.setPopupContent(regionPopupHtml(zone));
+      layer.bringToFront();
+      layer.openPopup();
+    } else {
+      layer.setStyle({ fillOpacity: 0.4, weight: 2 });
+      layer.closePopup();
+    }
+  });
+  selectedLocationMarker.bringToFront();
+
+  const targetZoom = Math.min(Math.max(map.getZoom(), 7), map.getMaxZoom());
+  map.flyTo(zone.center, targetZoom, { duration: 0.6 });
+  document.getElementById('selectedLocIndicator').textContent = zone.name;
+}
+
+function selectLocation(zoneId) {
+  appState.selectedLocationId = zoneId;
+  renderAll();
+}
+
+// --- Task Modal Logic ---
+let currentTaskId = null;
+function openTaskModal(taskId) {
+  currentTaskId = taskId;
+  const task = appState.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  document.getElementById('modalTitle').textContent = task.title;
+  document.getElementById('modalText').innerHTML = `<b>Mark this safety action as completed?</b><br><br>This will update the zone's resource allocation and recalculate risk status.`;
+  document.getElementById('taskModal').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('taskModal').classList.remove('active');
+  currentTaskId = null;
+}
+document.getElementById('modalConfirmBtn').addEventListener('click', () => {
+  if (currentTaskId) { completeTask(currentTaskId); closeModal(); }
+});
+
+// --- Mobile Sidebar Logic ---
+document.getElementById('mobileToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+});
+document.getElementById('sidebarOverlay').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+});
+
+// --- Initial Load ---
+document.getElementById('alertClose').addEventListener('click', () => {
+  document.getElementById('alertBanner').style.display = 'none';
+});
+loadZonesFromSupabase().then(() => {
+  testFortyGuardAPI();
+});
+subscribeToZoneChanges();
+</script>
+</body>
+</html>

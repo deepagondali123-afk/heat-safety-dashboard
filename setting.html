@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Settings · HeatShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAFAF8;
+  --bg-section:#2563EB;
+  --surface:#FFFFFF;
+  --text-1:#263238;
+  --text-2:#6B7785;
+  --text-3:#2563EB;
+  --text-4:#2563EB;
+  --border:#E5E9ED;
+  --border-strong:#d6e2fa;
+  --coral:#2563EB;
+  --coral-hover:#2563EB;
+  --coral-light:#FFF0ED;
+  --coral-border:#2563EB;
+  --sky:#2563EB;
+  --sky-light:#EAF6FB;
+  --sky-border:#2563EB;
+  --warm:#2563EB;
+  --warm-light:#FFFAED;
+  --mint:#D7F0E2;
+  --mint-border:#A8DFC2;
+  --rose:#FFD6D2;
+  --rose-border:#2563EB;
+  --sidebar-bg:#ECE9F8;
+  --sidebar-border:#D9D3EF;
+  --sidebar-active:#FFFFFF;
+  --sidebar-text:#5B4B8A;
+  --sidebar-muted:#8579B0;
+  --sidebar-hover-bg:rgba(124,58,237,0.08);
+  --sidebar-hover-text:#2D1B5E;
+  --sidebar-ai:#7C3AED;
+  --shadow-xs:0 1px 2px rgba(13, 13, 198, 0.03);
+  --shadow-sm:0 1px 3px rgba(38,50,56,0.04), 0 1px 2px rgba(38,50,56,0.03);
+  --shadow-md:0 4px 12px -2px rgba(38,50,56,0.06), 0 2px 4px rgba(38,50,56,0.03);
+  --shadow-lg:0 10px 28px -6px rgba(38,50,56,0.08), 0 4px 8px rgba(38,50,56,0.03);
+  --radius-sm:10px;
+  --radius-md:14px;
+  --radius-lg:18px;
+  --radius-xl:20px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);
+  color:var(--text-1);
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+/* Atmospheric background */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -5%, rgba(169,216,234,0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 85% 100%, rgba(255,138,114,0.08), transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 40%, rgba(215,240,226,0.06), transparent 60%);
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar{
+  position:fixed;
+  top:0;left:0;bottom:0;
+  width:256px;
+  background:var(--sidebar-bg);
+  border-right:1px solid var(--sidebar-border);
+  display:flex;
+  flex-direction:column;
+  z-index:40;
+  transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.sidebar-brand{
+  padding:24px 20px 22px;
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+.brand-mark{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--coral),#2563EB);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  font-size:16px;
+  box-shadow:0 3px 10px rgba(255,138,114,0.35);
+  position:relative;
+  flex-shrink:0;
+}
+.brand-mark::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:10px;
+  background:radial-gradient(circle at 30% 25%,rgba(33, 21, 207, 0.35),transparent 55%);
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;}
+.brand-name{
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:0.08em;
+  color:var(--text-1);
+}
+.brand-tag{
+  font-size:10px;
+  color:var(--sidebar-muted);
+  font-weight:500;
+  letter-spacing:0.03em;
+  margin-top:2px;
+}
+
+.sidebar-section{
+  padding:8px 12px 4px;
+  margin-top:10px;
+}
+.sidebar-label{
+  font-size:9.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--sidebar-muted);
+  padding:0 10px 6px;
+}
+
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:9px 11px;
+  border-radius:10px;
+  color:var(--sidebar-text);
+  font-size:13px;
+  font-weight:500;
+  text-decoration:none;
+  margin:2px 5px;
+  transition:background 0.2s ease, color 0.2s ease;
+  position:relative;
+}
+.nav-item i{
+  width:17px;
+  font-size:13.5px;
+  text-align:center;
+  color:var(--sidebar-muted);
+  transition:color 0.2s ease;
+}
+.nav-item:hover{
+  background:var(--sidebar-hover-bg);
+  color:var(--sidebar-hover-text);
+}
+.nav-item:hover i{color:var(--sidebar-ai);}
+.nav-item.active{
+  background:var(--sidebar-active);
+  color:var(--sidebar-hover-text);
+  font-weight:600;
+  box-shadow:var(--shadow-sm);
+}
+.nav-item.active i{color:var(--coral);}
+.nav-item.active::before{
+  content:"";
+  position:absolute;
+  left:-5px;
+  top:8px;bottom:8px;
+  width:3px;
+  border-radius:0 3px 3px 0;
+  background:var(--coral);
+}
+
+.sidebar-footer{
+  margin-top:auto;
+  padding:14px;
+}
+.user-card{
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:11px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  box-shadow:var(--shadow-xs);
+}
+.user-avatar{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--coral),#FF6B4F);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;
+  font-size:12px;
+  flex-shrink:0;
+  box-shadow:0 2px 8px rgba(255,138,114,0.25);
+}
+.user-info{flex:1;min-width:0;}
+.user-name{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text-1);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.user-role{
+  font-size:10.5px;
+  color:var(--sidebar-muted);
+  font-weight:500;
+}
+
+/* ============ MAIN ============ */
+.main{
+  margin-left:256px;
+  min-height:100vh;
+  position:relative;
+  z-index:1;
+}
+.container{
+  max-width:780px;
+  margin:0 auto;
+  padding:32px 40px 64px;
+}
+
+/* HEADER */
+.page-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:36px;
+  flex-wrap:wrap;
+}
+.page-header-left{}
+.page-title{
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:-0.02em;
+  color:var(--text-1);
+  line-height:1.15;
+}
+.page-subtitle{
+  font-size:13.5px;
+  color:var(--text-2);
+  margin-top:6px;
+  max-width:480px;
+  line-height:1.55;
+}
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding-top:4px;
+}
+.status-pill{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:6px 12px 6px 10px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:999px;
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--text-2);
+  box-shadow:var(--shadow-xs);
+}
+.status-dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--mint-border);
+  box-shadow:0 0 0 0 rgba(168,223,194,0.6);
+  animation:pulse 2.6s ease-out infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(168,223,194,0.6);}
+  70%{box-shadow:0 0 0 7px rgba(168,223,194,0);}
+  100%{box-shadow:0 0 0 0 rgba(168,223,194,0);}
+}
+.header-avatar{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--sky),#7CC4DB);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  font-weight:600;
+  font-size:12px;
+  border:2px solid #fff;
+  box-shadow:var(--shadow-sm);
+  cursor:pointer;
+  transition:transform 0.18s ease, box-shadow 0.18s ease;
+}
+.header-avatar:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-md);
+}
+
+/* ============ SETTINGS CARD ============ */
+.settings-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:28px 30px;
+  margin-bottom:18px;
+  box-shadow:var(--shadow-sm);
+  transition:transform 0.22s ease, box-shadow 0.22s ease;
+  position:relative;
+}
+.settings-card:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-md);
+}
+.card-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:4px;
+}
+.card-icon{
+  width:34px;height:34px;
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+  flex-shrink:0;
+}
+.card-icon.profile{background:var(--coral-light);color:var(--coral);border:1px solid var(--coral-border);}
+.card-icon.notif{background:var(--sky-light);color:#2563EB;border:1px solid var(--sky-border);}
+.card-icon.security{background:var(--warm-light);color:#C9920A;border:1px solid #F0D78A;}
+.card-icon.prefs{background:#F3F0FF;color:#2563EB;border:1px solid #DDD6FE;}
+.card-icon.account{background:var(--rose);color:#2563EB;border:1px solid var(--rose-border);}
+
+.card-title{
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--text-1);
+}
+.card-desc{
+  font-size:13px;
+  color:var(--text-2);
+  margin-bottom:22px;
+  margin-left:44px;
+  line-height:1.5;
+}
+
+/* ============ FORM ============ */
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-left:44px;
+}
+.form-group{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.form-group.full{grid-column:span 2;}
+.form-label{
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-2);
+  letter-spacing:0.02em;
+}
+.form-input{
+  padding:10px 14px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  font-family:inherit;
+  font-size:13.5px;
+  font-weight:500;
+  color:var(--text-1);
+  outline:none;
+  transition:border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  width:100%;
+}
+.form-input:hover{
+  border-color:var(--border-strong);
+}
+.form-input:focus{
+  border-color:var(--sky);
+  box-shadow:0 0 0 3px rgba(24, 37, 221, 0.3);
+  background:#fff;
+}
+.form-input::placeholder{
+  color:var(--text-4);
+  font-weight:400;
+}
+.form-input.error{
+  border-color:var(--rose-border);
+  box-shadow:0 0 0 3px rgba(54, 45, 233, 0.3);
+}
+.form-error{
+  font-size:11.5px;
+  color:#2563EB;
+  font-weight:500;
+  display:none;
+  align-items:center;
+  gap:4px;
+}
+.form-error.visible{display:flex;}
+.form-error i{font-size:10px;}
+
+.form-actions{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-top:22px;
+  margin-left:44px;
+}
+
+/* ============ BUTTONS ============ */
+.btn{
+  padding:10px 22px;
+  border-radius:10px;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  cursor:pointer;
+  border:1px solid transparent;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  transition:all 0.2s ease;
+  text-decoration:none;
+}
+.btn-primary{
+  background:var(--coral);
+  color:#fff;
+  border-color:var(--coral);
+  box-shadow:0 3px 10px rgba(255,138,114,0.3);
+}
+.btn-primary:hover{
+  background:var(--coral-hover);
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(255,138,114,0.35);
+}
+.btn-primary:active{
+  transform:translateY(0);
+  box-shadow:0 2px 6px rgba(255,138,114,0.25);
+}
+.btn-secondary{
+  background:#fff;
+  color:var(--text-2);
+  border-color:var(--border);
+}
+.btn-secondary:hover{
+  background:var(--bg);
+  border-color:var(--border-strong);
+  color:var(--text-1);
+}
+.btn-danger-text{
+  background:none;
+  color:var(--text-2);
+  border:1px solid var(--border);
+  box-shadow:none;
+}
+.btn-danger-text:hover{
+  background:var(--rose);
+  border-color:var(--rose-border);
+  color:#2563EB;
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-sm);
+}
+.btn-danger-text:active{transform:translateY(0);}
+
+/* ============ SUCCESS STATE ============ */
+.success-msg{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12.5px;
+  font-weight:600;
+  color:#2E7D52;
+  background:var(--mint);
+  padding:6px 13px;
+  border-radius:999px;
+  border:1px solid var(--mint-border);
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity 0.35s ease, transform 0.35s ease;
+}
+.success-msg.visible{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* ============ TOGGLES ============ */
+.toggle-list{
+  margin-left:44px;
+  display:flex;
+  flex-direction:column;
+}
+.toggle-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:16px 0;
+  border-bottom:1px solid var(--border);
+}
+.toggle-item:last-child{border-bottom:none;}
+.toggle-info{flex:1;min-width:0;}
+.toggle-label{
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--text-1);
+  margin-bottom:2px;
+}
+.toggle-desc{
+  font-size:12.5px;
+  color:var(--text-2);
+  line-height:1.45;
+}
+.toggle-switch{
+  position:relative;
+  width:44px;
+  height:24px;
+  flex-shrink:0;
+}
+.toggle-switch input{
+  opacity:0;
+  width:0;
+  height:0;
+  position:absolute;
+}
+.toggle-track{
+  position:absolute;
+  inset:0;
+  background:var(--border-strong);
+  border-radius:999px;
+  cursor:pointer;
+  transition:background 0.25s ease, box-shadow 0.25s ease;
+}
+.toggle-track::after{
+  content:"";
+  position:absolute;
+  top:3px;left:3px;
+  width:18px;height:18px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,0.12);
+  transition:transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
+}
+.toggle-switch input:checked + .toggle-track{
+  background:var(--sky);
+  box-shadow:0 0 0 2px rgba(41, 20, 203, 0.25);
+}
+.toggle-switch input:checked + .toggle-track::after{
+  transform:translateX(20px);
+  box-shadow:0 1px 4px rgba(0,0,0,0.15);
+}
+.toggle-switch input:focus-visible + .toggle-track{
+  outline:2px solid var(--sky);
+  outline-offset:2px;
+}
+
+/* ============ SECURITY ============ */
+.security-row{
+  margin-left:44px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.security-info{}
+.security-label{
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--text-1);
+}
+.security-value{
+  font-size:13px;
+  color:var(--text-3);
+  margin-top:2px;
+  letter-spacing:0.08em;
+}
+
+/* ============ RADIO / SEGMENTED ============ */
+.pref-group{
+  margin-left:44px;
+}
+.pref-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+}
+.pref-item:last-child{border-bottom:none;}
+.pref-label{
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--text-1);
+}
+.pref-desc{
+  font-size:12.5px;
+  color:var(--text-2);
+  margin-top:2px;
+}
+.segmented{
+  display:inline-flex;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:3px;
+  gap:2px;
+  flex-shrink:0;
+}
+.segmented-btn{
+  padding:6px 16px;
+  border-radius:8px;
+  border:none;
+  background:transparent;
+  font-family:inherit;
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text-2);
+  cursor:pointer;
+  transition:all 0.2s ease;
+  white-space:nowrap;
+}
+.segmented-btn:hover{
+  color:var(--text-1);
+}
+.segmented-btn.active{
+  background:#fff;
+  color:var(--text-1);
+  box-shadow:var(--shadow-sm);
+}
+
+/* ============ ACCOUNT ============ */
+.account-body{
+  margin-left:44px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.account-text{
+  font-size:13px;
+  color:var(--text-2);
+}
+
+/* ============ MODAL ============ */
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(38,50,56,0.35);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.22s ease;
+  padding:20px;
+}
+.modal-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.modal{
+  background:#fff;
+  border-radius:var(--radius-lg);
+  width:100%;
+  max-width:420px;
+  padding:26px;
+  box-shadow:0 24px 48px -12px rgba(38,50,56,0.2);
+  transform:scale(0.94) translateY(8px);
+  transition:transform 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+.modal-backdrop.show .modal{transform:scale(1) translateY(0);}
+.modal-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:20px;
+}
+.modal-icon{
+  width:40px;height:40px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+.modal-icon.password{background:var(--warm-light);color:#C9920A;border:1px solid #F0D78A;}
+.modal-icon.signout{background:var(--rose);color:#C55A4F;border:1px solid var(--rose-border);}
+.modal-title{
+  font-size:17px;
+  font-weight:800;
+  color:var(--text-1);
+  letter-spacing:-0.01em;
+}
+.modal-subtitle{
+  font-size:12.5px;
+  color:var(--text-2);
+  margin-top:1px;
+}
+.modal-body{
+  margin-bottom:20px;
+}
+.modal-form-group{
+  margin-bottom:14px;
+}
+.modal-form-group:last-child{margin-bottom:0;}
+.modal-form-label{
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-2);
+  margin-bottom:5px;
+  display:block;
+}
+.modal-form-input{
+  width:100%;
+  padding:9px 13px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  font-family:inherit;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text-1);
+  outline:none;
+  transition:border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.modal-form-input:hover{border-color:var(--border-strong);}
+.modal-form-input:focus{
+  border-color:var(--sky);
+  box-shadow:0 0 0 3px rgba(32, 98, 197, 0.4);
+  background:#fff;
+}
+.modal-form-input.error{
+  border-color:var(--rose-border);
+  box-shadow:0 0 0 3px rgba(255,214,210,0.3);
+}
+.modal-form-error{
+  font-size:11px;
+  color:#C55A4F;
+  font-weight:500;
+  margin-top:4px;
+  display:none;
+  align-items:center;
+  gap:4px;
+}
+.modal-form-error.visible{display:flex;}
+.modal-form-error i{font-size:9px;}
+.modal-body-text{
+  font-size:13.5px;
+  color:var(--text-2);
+  line-height:1.55;
+}
+.modal-actions{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+}
+.modal-btn{
+  padding:9px 18px;
+  border-radius:10px;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  border:1px solid transparent;
+  transition:all 0.18s ease;
+}
+.modal-btn.cancel{
+  background:#fff;
+  color:var(--text-2);
+  border-color:var(--border);
+}
+.modal-btn.cancel:hover{
+  background:var(--bg);
+  border-color:var(--border-strong);
+  color:var(--text-1);
+}
+.modal-btn.confirm{
+  background:var(--coral);
+  color:#fff;
+  box-shadow:0 3px 10px rgba(255,138,114,0.3);
+}
+.modal-btn.confirm:hover{
+  background:var(--coral-hover);
+  transform:translateY(-1px);
+  box-shadow:0 6px 14px rgba(255,138,114,0.35);
+}
+.modal-btn.confirm:active{transform:translateY(0);}
+.modal-btn.danger{
+  background:var(--rose);
+  color:#C55A4F;
+  box-shadow:0 3px 10px rgba(255,214,210,0.3);
+}
+.modal-btn.danger:hover{
+  background:var(--rose-border);
+  transform:translateY(-1px);
+  box-shadow:0 6px 14px rgba(255,214,210,0.35);
+}
+
+/* ============ TOAST ============ */
+.toast-container{
+  position:fixed;
+  bottom:28px;right:28px;
+  z-index:200;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  pointer-events:none;
+}
+.toast{
+  background:#fff;
+  border:1px solid var(--mint-border);
+  border-left:3px solid var(--mint-border);
+  border-radius:12px;
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  box-shadow:0 12px 28px -8px rgba(38,50,56,0.12);
+  transform:translateY(16px) scale(0.96);
+  opacity:0;
+  pointer-events:auto;
+  transition:transform 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.22s ease;
+  min-width:260px;
+}
+.toast.show{
+  transform:translateY(0) scale(1);
+  opacity:1;
+}
+.toast-icon{
+  width:28px;height:28px;
+  border-radius:8px;
+  background:var(--mint);
+  color:#2E7D52;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;
+  flex-shrink:0;
+}
+.toast-content{flex:1;}
+.toast-title{
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--text-1);
+}
+.toast-close{
+  background:none;
+  border:none;
+  color:var(--text-4);
+  cursor:pointer;
+  font-size:13px;
+  padding:2px;
+  transition:color 0.2s ease;
+  line-height:1;
+}
+.toast-close:hover{color:var(--text-2);}
+
+/* ============ ANIMATIONS ============ */
+.fade-in{
+  animation:fadeInUp 0.45s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.delay-1{animation-delay:0.04s;}
+.delay-2{animation-delay:0.08s;}
+.delay-3{animation-delay:0.12s;}
+.delay-4{animation-delay:0.16s;}
+.delay-5{animation-delay:0.20s;}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:920px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-toggle{display:flex !important;}
+  .container{padding:28px 24px 56px;}
+}
+@media (max-width:640px){
+  .container{padding:22px 18px 48px;}
+  .page-header{flex-direction:column;gap:16px;}
+  .header-right{width:100%;justify-content:space-between;}
+  .form-grid{grid-template-columns:1fr;}
+  .form-group.full{grid-column:auto;}
+  .settings-card{padding:22px 20px;}
+  .card-desc,.form-grid,.toggle-list,.security-row,.pref-group,.account-body,.form-actions{margin-left:0;}
+  .card-header{margin-bottom:2px;}
+  .toggle-item{flex-direction:column;align-items:flex-start;gap:10px;}
+  .security-row{flex-direction:column;align-items:flex-start;gap:12px;}
+  .pref-item{flex-direction:column;align-items:flex-start;gap:10px;}
+  .account-body{flex-direction:column;align-items:flex-start;gap:12px;}
+  .toast{left:16px;right:16px;bottom:16px;min-width:0;}
+  .modal{padding:20px;}
+}
+
+.mobile-toggle{
+  display:none;
+  position:fixed;
+  top:14px;left:14px;
+  width:36px;height:36px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  align-items:center;justify-content:center;
+  cursor:pointer;
+  z-index:50;
+  box-shadow:var(--shadow-sm);
+  color:var(--text-2);
+  font-size:14px;
+}
+.sidebar-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(38,50,56,0.3);
+  backdrop-filter:blur(2px);
+  z-index:39;
+}
+.sidebar-overlay.show{display:block;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://keztqrrtzhxjvstfuqfp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_79OlgP1MibPc_l0l7MN5Qg_dqID04ua";
+
+    const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+</script>
+</head>
+<body>
+
+<button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation">
+  <i class="fa-solid fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">HEATSHIELD</div>
+      <div class="brand-tag">AI Heat Safety</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Operations</div>
+    <a href="dashboard.html" class="nav-item">
+      <i class="fa-solid fa-gauge-high"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="heat-map.html" class="nav-item">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>Heat Map</span>
+    </a>
+    <a href="Resource.html" class="nav-item">
+      <i class="fa-solid fa-scale-balanced"></i>
+      <span>Resource Allocation</span>
+    </a>
+     <a href="safety.html" class="nav-item">
+      <i class="fa-solid fa-clipboard-check"></i>
+      <span>Safety Actions</span>
+    </a>
+    <a href="Worker.html" class="nav-item">
+      <i class="fa-solid fa-people-group"></i>
+      <span>Worker Groups</span>
+    </a>
+    <a href="Alert.html" class="nav-item">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Alerts</span>
+    </a>
+    <a href="Incident.html" class="nav-item">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>Incident History</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">System</div>
+    <a href="setting.html" class="nav-item active">
+      <i class="fa-solid fa-gear"></i>
+      <span>Settings</span>
+    </a>
+    <a href="help.html" class="nav-item">
+      <i class="fa-solid fa-circle-question"></i>
+      <span>Help</span>
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+<div class="user-card">
+    <div class="user-avatar" id="sidebarAvatar">JS</div>
+    <div class="user-info">
+        <div class="user-name" id="sidebarUserName">Jane Smith</div>
+        <div class="user-role">Texas Operations</div>
+    </div>
+</div>
+</aside>
+
+
+<!-- ============ MAIN ============ -->
+<main class="main">
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="page-header fade-in">
+      <div class="page-header-left">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Manage your HeatShield profile, notifications, security, and preferences.</p>
+      </div>
+      <div class="header-right">
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          System Online
+        </div>
+        
+      </div>
+    </header>
+
+    <!-- PROFILE -->
+    <div class="settings-card fade-in delay-1">
+      <div class="card-header">
+        <div class="card-icon profile"><i class="fa-solid fa-user"></i></div>
+        <div class="card-title">Profile</div>
+      </div>
+      <p class="card-desc">Manage your account information.</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="firstName">First Name</label>
+          <input class="form-input" type="text" id="firstName" value="Jane" autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lastName">Last Name</label>
+          <input class="form-input" type="text" id="lastName" value="Smith" autocomplete="family-name">
+        </div>
+        <div class="form-group full">
+          <label class="form-label" for="workEmail">Work Email</label>
+          <input class="form-input" type="email" id="workEmail" value="jane@company.com" autocomplete="email">
+        </div>
+        <div class="form-group full">
+          <label class="form-label" for="company">Company</label>
+          <input class="form-input" type="text" id="company" value="Acme Corp" autocomplete="organization">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="saveProfileBtn" onclick="saveProfile()">
+          <i class="fa-solid fa-check" style="font-size:12px;"></i>
+          Save Changes
+        </button>
+        <div class="success-msg" id="profileSuccess">
+          <i class="fa-solid fa-circle-check" style="font-size:12px;"></i>
+          Profile updated successfully
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="settings-card fade-in delay-2">
+      <div class="card-header">
+        <div class="card-icon notif"><i class="fa-solid fa-bell"></i></div>
+        <div class="card-title">Notifications</div>
+      </div>
+      <p class="card-desc">Choose which HeatShield events you want to be notified about.</p>
+      <div class="toggle-list">
+        <div class="toggle-item">
+          <div class="toggle-info">
+            <div class="toggle-label">Critical Heat Alerts</div>
+            <div class="toggle-desc">Get notified when a workplace zone reaches critical heat risk.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" checked data-key="criticalHeat">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="toggle-item">
+          <div class="toggle-info">
+            <div class="toggle-label">Resource Allocation Recommendations</div>
+            <div class="toggle-desc">Receive alerts when HeatShield recommends deploying a limited safety resource.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" checked data-key="resourceAllocation">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="toggle-item">
+          <div class="toggle-info">
+            <div class="toggle-label">Deployment Confirmations</div>
+            <div class="toggle-desc">Get notified when a safety resource is successfully deployed.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" checked data-key="deployConfirm">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="toggle-item">
+          <div class="toggle-info">
+            <div class="toggle-label">Incident History Updates</div>
+            <div class="toggle-desc">Receive notifications when important safety actions are recorded.</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" data-key="incidentUpdates">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="settings-card fade-in delay-3">
+      <div class="card-header">
+        <div class="card-icon security"><i class="fa-solid fa-lock"></i></div>
+        <div class="card-title">Security</div>
+      </div>
+      <p class="card-desc">Manage your account security settings.</p>
+      <div class="security-row">
+        <div class="security-info">
+          <div class="security-label">Password</div>
+          <div class="security-value">••••••••</div>
+        </div>
+        <button class="btn btn-secondary" onclick="openPasswordModal()">
+          <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+          Change Password
+        </button>
+      </div>
+    </div>
+
+    <!-- PREFERENCES -->
+    <div class="settings-card fade-in delay-4">
+      <div class="card-header">
+        <div class="card-icon prefs"><i class="fa-solid fa-sliders"></i></div>
+        <div class="card-title">Preferences</div>
+      </div>
+      <p class="card-desc">Customize your HeatShield experience.</p>
+      <div class="pref-group">
+        <div class="pref-item">
+          <div>
+            <div class="pref-label">Theme</div>
+            <div class="pref-desc">Keep the page light by default.</div>
+          </div>
+          <div class="segmented" id="themeSegmented">
+            <button class="segmented-btn active" data-value="light" onclick="setTheme(this)">Light</button>
+            <button class="segmented-btn" data-value="system" onclick="setTheme(this)">System</button>
+          </div>
+        </div>
+        <div class="pref-item">
+          <div>
+            <div class="pref-label">Dashboard Refresh</div>
+            <div class="pref-desc">How often the dashboard data updates.</div>
+          </div>
+          <div class="segmented" id="refreshSegmented">
+            <button class="segmented-btn active" data-value="live" onclick="setRefresh(this)">Live</button>
+            <button class="segmented-btn" data-value="5min" onclick="setRefresh(this)">Every 5 minutes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div class="settings-card fade-in delay-5">
+      <div class="card-header">
+        <div class="card-icon account"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+        <div class="card-title">Account</div>
+      </div>
+      <p class="card-desc">Sign out of your HeatShield account.</p>
+      <div class="account-body">
+        <div class="account-text">You can sign out safely. Your data will be preserved for next sign-in.</div>
+        <button class="btn btn-danger-text" onclick="openSignOutModal()">
+          <i class="fa-solid fa-arrow-right-from-bracket" style="font-size:12px;"></i>
+          Sign Out
+        </button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-backdrop" id="passwordModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-icon password"><i class="fa-solid fa-key"></i></div>
+      <div>
+        <div class="modal-title">Change Password</div>
+        <div class="modal-subtitle">Update your account password.</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-form-group">
+        <label class="modal-form-label" for="currentPwd">Current Password</label>
+        <input class="modal-form-input" type="password" id="currentPwd" placeholder="Enter current password" autocomplete="current-password">
+        <div class="modal-form-error" id="currentPwdError"><i class="fa-solid fa-circle-exclamation"></i> <span>Current password is required.</span></div>
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-form-label" for="newPwd">New Password</label>
+        <input class="modal-form-input" type="password" id="newPwd" placeholder="Enter new password" autocomplete="new-password">
+        <div class="modal-form-error" id="newPwdError"><i class="fa-solid fa-circle-exclamation"></i> <span>Must be at least 8 characters.</span></div>
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-form-label" for="confirmPwd">Confirm New Password</label>
+        <input class="modal-form-input" type="password" id="confirmPwd" placeholder="Re-enter new password" autocomplete="new-password">
+        <div class="modal-form-error" id="confirmPwdError"><i class="fa-solid fa-circle-exclamation"></i> <span>Passwords do not match.</span></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closePasswordModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="updatePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIGN OUT MODAL -->
+<div class="modal-backdrop" id="signOutModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-icon signout"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+      <div>
+        <div class="modal-title">Sign out of HeatShield?</div>
+        <div class="modal-subtitle">You will need to sign in again to access your dashboard.</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p class="modal-body-text">Your data and settings will be preserved for your next session.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeSignOutModal()">Cancel</button>
+      <button class="modal-btn danger" onclick="confirmSignOut()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ==============================
+// LOAD USER DATA
+// ==============================
+
+async function loadUserData() {
+
+    const { data: { user }, error } =
+        await supabaseClient.auth.getUser();
+
+    if (error || !user) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    console.log("Settings user:", user);
+    // ==============================
+// UPDATE SIDEBAR USER
+// ==============================
+
+const fullName =
+    user.user_metadata.full_name ||
+    user.user_metadata.name ||
+    user.email;
+
+document.getElementById("sidebarUserName").textContent = fullName;
+
+const initials = fullName
+    .trim()
+    .split(/\s+/)
+    .map(word => word.charAt(0))
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
+
+document.getElementById("sidebarAvatar").textContent = initials;
+
+    // ==============================
+    // LOAD PROFILE FROM SUPABASE
+    // ==============================
+
+    const { data: profile, error: profileError } =
+        await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+
+    if (profileError) {
+    console.error("Profile load error:", profileError);
+    console.error("Error message:", profileError.message);
+    console.error("Error details:", profileError.details);
+    console.error("Error hint:", profileError.hint);
+    console.error("Error code:", profileError.code);
+    return;
+}
+
+    if (profile) {
+
+        // Existing profile
+        document.getElementById("firstName").value =
+            profile.first_name || "";
+
+        document.getElementById("lastName").value =
+            profile.last_name || "";
+
+        document.getElementById("workEmail").value =
+            profile.work_email || user.email || "";
+
+        document.getElementById("company").value =
+            profile.company || "";
+
+    } else {
+
+        // First time this user is opening Settings
+        const fullName =
+            user.user_metadata.full_name ||
+            user.user_metadata.name ||
+            "";
+
+        const nameParts = fullName.trim().split(/\s+/);
+
+        document.getElementById("firstName").value =
+            nameParts[0] || "";
+
+        document.getElementById("lastName").value =
+            nameParts.slice(1).join(" ") || "";
+
+        document.getElementById("workEmail").value =
+            user.email || "";
+    }
+
+
+    // ==============================
+    // LOAD NOTIFICATION PREFERENCES
+    // ==============================
+
+    const notifs = localStorage.getItem("heatshield_notifs");
+
+    if (notifs) {
+        try {
+
+            const prefs = JSON.parse(notifs);
+
+            document.querySelectorAll(".toggle-switch input").forEach(toggle => {
+
+                const key = toggle.getAttribute("data-key");
+
+                if (key in prefs) {
+                    toggle.checked = prefs[key];
+                }
+
+            });
+
+        } catch (e) {
+            console.log("Using default notification settings");
+        }
+    }
+
+
+    // ==============================
+    // LOAD THEME
+    // ==============================
+
+    const theme = localStorage.getItem("heatshield_theme");
+
+    if (theme === "system") {
+        setThemeDirect("system");
+    }
+
+
+    // ==============================
+    // LOAD REFRESH PREFERENCE
+    // ==============================
+
+    const refresh = localStorage.getItem("heatshield_refresh");
+
+    if (refresh === "5min") {
+        setRefreshDirect("5min");
+    }
+}
+
+
+// ==============================
+// SAVE PROFILE
+// ==============================
+
+async function saveProfile() {
+
+    const firstName =
+        document.getElementById("firstName").value.trim();
+
+    const lastName =
+        document.getElementById("lastName").value.trim();
+
+    const email =
+        document.getElementById("workEmail").value.trim();
+
+    const company =
+        document.getElementById("company").value.trim();
+
+
+    // Basic validation
+    if (!firstName || !lastName || !email || !company) {
+        showToast(
+            "Missing fields",
+            "Please fill in all profile fields."
+        );
+        return;
+    }
+
+
+    // Get currently logged-in user
+    const { data: { user }, error: userError } =
+        await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+        window.location.href = "login.html";
+        return;
+    }
+
+
+    // Save profile to Supabase
+    const { error: saveError } =
+        await supabaseClient
+            .from("profiles")
+            .upsert({
+                id: user.id,
+                first_name: firstName,
+                last_name: lastName,
+                work_email: email,
+                company: company,
+                updated_at: new Date().toISOString()
+            });
+
+
+    // Handle error
+    if (saveError) {
+        console.error("Profile save error:", saveError);
+
+        showToast(
+            "Save failed",
+            "Unable to save your profile. Please try again."
+        );
+
+        return;
+    }
+
+
+    // Show success message
+    const msg =
+        document.getElementById("profileSuccess");
+
+    msg.classList.add("visible");
+
+    setTimeout(() => {
+        msg.classList.remove("visible");
+    }, 3500);
+
+
+    // Toast
+    showToast(
+        "Profile updated",
+        "Your changes have been saved."
+    );
+}
+
+// ==============================
+// NOTIFICATION TOGGLES
+// ==============================
+document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+  toggle.addEventListener('change', function() {
+    const prefs = {};
+    document.querySelectorAll('.toggle-switch input').forEach(t => {
+      prefs[t.getAttribute('data-key')] = t.checked;
+    });
+    localStorage.setItem('heatshield_notifs', JSON.stringify(prefs));
+  });
+});
+
+// ==============================
+// THEME
+// ==============================
+function setTheme(btn) {
+  const value = btn.getAttribute('data-value');
+  setThemeDirect(value);
+  localStorage.setItem('heatshield_theme', value);
+}
+
+function setThemeDirect(value) {
+  const container = document.getElementById('themeSegmented');
+  container.querySelectorAll('.segmented-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-value') === value);
+  });
+}
+
+// ==============================
+// REFRESH
+// ==============================
+function setRefresh(btn) {
+  const value = btn.getAttribute('data-value');
+  setRefreshDirect(value);
+  localStorage.setItem('heatshield_refresh', value);
+}
+
+function setRefreshDirect(value) {
+  const container = document.getElementById('refreshSegmented');
+  container.querySelectorAll('.segmented-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-value') === value);
+  });
+}
+
+// ==============================
+// PASSWORD MODAL
+// ==============================
+function openPasswordModal() {
+  document.getElementById('passwordModal').classList.add('show');
+  clearPasswordErrors();
+  document.getElementById('currentPwd').value = '';
+  document.getElementById('newPwd').value = '';
+  document.getElementById('confirmPwd').value = '';
+  setTimeout(() => document.getElementById('currentPwd').focus(), 300);
+}
+
+function closePasswordModal() {
+  document.getElementById('passwordModal').classList.remove('show');
+}
+
+function clearPasswordErrors() {
+  ['currentPwd', 'newPwd', 'confirmPwd'].forEach(id => {
+    document.getElementById(id).classList.remove('error');
+    document.getElementById(id + 'Error').classList.remove('visible');
+  });
+}
+
+async function updatePassword() {
+
+    clearPasswordErrors();
+
+    const current =
+        document.getElementById("currentPwd").value;
+
+    const newPwd =
+        document.getElementById("newPwd").value;
+
+    const confirm =
+        document.getElementById("confirmPwd").value;
+
+    let valid = true;
+
+
+    // ==============================
+    // VALIDATION
+    // ==============================
+
+    if (!current) {
+        document.getElementById("currentPwd").classList.add("error");
+        document.getElementById("currentPwdError").classList.add("visible");
+        valid = false;
+    }
+
+    if (newPwd.length < 8) {
+        document.getElementById("newPwd").classList.add("error");
+        document.getElementById("newPwdError").classList.add("visible");
+        valid = false;
+    }
+
+    if (newPwd !== confirm) {
+        document.getElementById("confirmPwd").classList.add("error");
+        document.getElementById("confirmPwdError").classList.add("visible");
+        valid = false;
+    }
+
+    if (!valid) return;
+
+
+    // ==============================
+    // CHECK LOGGED-IN USER
+    // ==============================
+
+    const { data: { user }, error: userError } =
+        await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+        window.location.href = "login.html";
+        return;
+    }
+
+
+    // ==============================
+    // UPDATE PASSWORD
+    // ==============================
+
+    const { error: updateError } =
+        await supabaseClient.auth.updateUser({
+            password: newPwd
+        });
+
+
+    // ==============================
+    // HANDLE ERROR
+    // ==============================
+
+    if (updateError) {
+
+        console.error("Password update error:", updateError);
+
+        showToast(
+            "Password update failed",
+            updateError.message
+        );
+
+        return;
+    }
+
+
+    // ==============================
+    // SUCCESS
+    // ==============================
+
+    closePasswordModal();
+
+    showToast(
+        "Password updated",
+        "Your password has been changed successfully."
+    );
+}
+
+// Clear error on input
+['currentPwd', 'newPwd', 'confirmPwd'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function() {
+    this.classList.remove('error');
+    document.getElementById(id + 'Error').classList.remove('visible');
+  });
+});
+
+// ==============================
+// SIGN OUT MODAL
+// ==============================
+function openSignOutModal() {
+  document.getElementById('signOutModal').classList.add('show');
+}
+
+function closeSignOutModal() {
+  document.getElementById('signOutModal').classList.remove('show');
+}
+
+async function confirmSignOut() {
+    try {
+        const { error } = await supabaseClient.auth.signOut();
+
+        if (error) {
+            console.error("Sign out error:", error);
+            alert("Unable to sign out. Please try again.");
+            return;
+        }
+
+        window.location.href = "login.html";
+    } catch (err) {
+        console.error("Sign out error:", err);
+        alert("Something went wrong while signing out.");
+    }
+}
+
+// ==============================
+// TOAST
+// ==============================
+function showToast(title, message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <div class="toast-icon"><i class="fa-solid fa-check"></i></div>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+  `;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 350);
+  }, 4000);
+}
+
+// ==============================
+// CLOSE MODALS ON BACKDROP
+// ==============================
+document.getElementById('passwordModal').addEventListener('click', function(e) {
+  if (e.target === this) closePasswordModal();
+});
+document.getElementById('signOutModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSignOutModal();
+});
+
+// Close modals on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closePasswordModal();
+    closeSignOutModal();
+  }
+});
+
+// ==============================
+// MOBILE SIDEBAR
+// ==============================
+document.getElementById('mobileToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+});
+document.getElementById('sidebarOverlay').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+});
+
+// ==============================
+// INIT
+// ==============================
+document.addEventListener('DOMContentLoaded', loadUserData);
+</script>
+</body>
+</html>

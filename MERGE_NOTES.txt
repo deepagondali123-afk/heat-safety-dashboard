@@ -1,0 +1,7 @@
+HeatShield merged project
+
+Source of truth: original DD(1).zip project.
+Merged from D&D duo final (2).zip:
+- Dashboard: stronger dynamic priority/task calculations and highest-risk initial zone selection, while PRESERVING the original FortyGuard integration.
+- safety.html: Supabase zone loading and dynamic safety-action generation, while preserving the existing audit/compliance UI.
+- No node_modules included; run npm install in the project folder before starting the server.

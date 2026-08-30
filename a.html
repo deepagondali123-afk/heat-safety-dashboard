@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alerts · HeatShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAFAF8;
+  --bg-section:#F3F5F7;
+  --surface:#FFFFFF;
+  --text-1:#263238;
+  --text-2:#6B7785;
+  --text-3:#8C97A3;
+  --text-4:#A8B2BD;
+  --border:#E5E9ED;
+  --border-strong:#D5DBE1;
+  --primary:#2563EB;
+  --primary-dark:#1D4ED8;
+  --primary-soft:#DBEAFE;
+  --critical:#DC2626;
+  --critical-bg:#FEF2F2;
+  --critical-border:#FECACA;
+  --high:#EA580C;
+  --high-bg:#FFF7ED;
+  --high-border:#FED7AA;
+  --medium:#CA8A04;
+  --medium-bg:#FEFCE8;
+  --medium-border:#FDE68A;
+  --safe:#059669;
+  --safe-bg:#ECFDF5;
+  --safe-border:#A7F3D0;
+  --shadow-xs:0 1px 2px rgba(13, 13, 198, 0.03);
+  --shadow-sm:0 1px 2px rgba(38,50,56,0.04), 0 1px 3px rgba(38,50,56,0.04);
+  --shadow-md:0 4px 12px -2px rgba(38,50,56,0.06), 0 2px 4px -1px rgba(38,50,56,0.04);
+  --shadow-lg:0 12px 28px -8px rgba(38,50,56,0.10), 0 6px 12px -4px rgba(38,50,56,0.05);
+  --shadow-xl:0 20px 40px -12px rgba(38,50,56,0.12), 0 10px 20px -8px rgba(38,50,56,0.06);
+  --radius-sm:10px;
+  --radius-md:14px;
+  --radius-lg:18px;
+  --radius-xl:22px;
+  --sidebar-bg:#ECE9F8;
+  --sidebar-border:#D9D3EF;
+  --sidebar-active:#FFFFFF;
+  --sidebar-text:#5B4B8A;
+  --sidebar-muted:#8579B0;
+  --sidebar-hover-bg:rgba(124,58,237,0.08);
+  --sidebar-hover-text:#2D1B5E;
+  --sidebar-ai:#7C3AED;
+  --sidebar-primary:#2563EB;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);
+  color:var(--text-1);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar{
+  position:fixed;
+  top:0;left:0;bottom:0;
+  width:256px;
+  background:var(--sidebar-bg);
+  border-right:1px solid var(--sidebar-border);
+  display:flex;
+  flex-direction:column;
+  z-index:40;
+  transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.sidebar-brand{
+  padding:24px 20px 22px;
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+.brand-mark{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:linear-gradient(135deg, var(--primary), #2563EB);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  font-size:16px;
+  box-shadow:0 3px 10px rgba(37, 99, 235, 0.35);
+  position:relative;
+  flex-shrink:0;
+}
+.brand-mark::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:10px;
+  background:radial-gradient(circle at 30% 25%,rgba(33, 21, 207, 0.35),transparent 55%);
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;}
+.brand-name{
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:0.08em;
+  color:var(--text-1);
+}
+.brand-tag{
+  font-size:10px;
+  color:var(--sidebar-muted);
+  font-weight:500;
+  letter-spacing:0.03em;
+  margin-top:2px;
+}
+
+.sidebar-section{
+  padding:8px 12px 4px;
+  margin-top:10px;
+}
+.sidebar-label{
+  font-size:9.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--sidebar-muted);
+  padding:0 10px 6px;
+}
+
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:9px 11px;
+  border-radius:10px;
+  color:var(--sidebar-text);
+  font-size:13px;
+  font-weight:500;
+  text-decoration:none;
+  margin:2px 5px;
+  transition:background 0.2s ease, color 0.2s ease;
+  position:relative;
+}
+.nav-item i{
+  width:17px;
+  font-size:13.5px;
+  text-align:center;
+  color:var(--sidebar-muted);
+  transition:color 0.2s ease;
+}
+.nav-item:hover{
+  background:var(--sidebar-hover-bg);
+  color:var(--sidebar-hover-text);
+}
+.nav-item:hover i{color:var(--sidebar-ai);}
+.nav-item.active{
+  background:var(--sidebar-active);
+  color:var(--sidebar-hover-text);
+  font-weight:600;
+  box-shadow:var(--shadow-sm);
+}
+.nav-item.active i{color:var(--primary);}
+.nav-item.active::before{
+  content:"";
+  position:absolute;
+  left:-5px;
+  top:8px;bottom:8px;
+  width:3px;
+  border-radius:0 3px 3px 0;
+  background:var(--primary);
+}
+
+.sidebar-footer{
+  margin-top:auto;
+  padding:14px;
+}
+.user-card{
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:11px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  box-shadow:var(--shadow-xs);
+}
+.user-avatar{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:linear-gradient(135deg, var(--primary), #7CC4DB);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;
+  font-size:12px;
+  flex-shrink:0;
+  box-shadow:0 2px 8px rgba(59, 130, 246, 0.25);
+}
+.user-info{flex:1;min-width:0;}
+.user-name{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text-1);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.user-role{
+  font-size:10.5px;
+  color:var(--sidebar-muted);
+  font-weight:500;
+}
+
+/* ============ MAIN ============ */
+.main{
+  margin-left:256px;
+  min-height:100vh;
+  position:relative;
+}
+.container{
+  max-width:1280px;
+  margin:0 auto;
+  padding:32px 36px 60px;
+}
+
+/* ============ HEADER ============ */
+.page-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:28px;
+  flex-wrap:wrap;
+}
+.header-title-block{flex:1;min-width:280px;}
+.page-eyebrow{
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--primary-dark);
+  margin-bottom:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.page-eyebrow::before{
+  content:"";
+  width:24px;height:2px;
+  background:var(--primary);
+  border-radius:2px;
+}
+.page-title{
+  font-size:30px;
+  font-weight:800;
+  letter-spacing:-0.025em;
+  color:var(--text-1);
+  line-height:1.15;
+}
+.page-subtitle{
+  font-size:14.5px;
+  color:var(--text-2);
+  margin-top:6px;
+  max-width:620px;
+  line-height:1.5;
+}
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.alert-indicator{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:var(--critical-bg);
+  border:1px solid var(--critical-border);
+  border-radius:999px;
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--critical);
+}
+.alert-indicator .dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--critical);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(220,38,38,0); }
+  100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+}
+.mark-reviewed-btn{
+  padding:9px 16px;
+  background:var(--surface);
+  color:var(--text-1);
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition:all 0.18s ease;
+}
+.mark-reviewed-btn:hover{
+  border-color:var(--primary);
+  color:var(--primary-dark);
+  background:var(--primary-soft);
+}
+
+/* ============ SUMMARY CARDS ============ */
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:32px;
+}
+.summary-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:18px 20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
+}
+.summary-card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-md);
+}
+.summary-icon{
+  width:44px;height:44px;
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+.summary-icon.critical{background:var(--critical-bg);color:var(--critical);}
+.summary-icon.high{background:var(--high-bg);color:var(--high);}
+.summary-icon.medium{background:var(--primary-soft);color:var(--primary-dark);}
+.summary-icon.safe{background:var(--safe-bg);color:var(--safe);}
+.summary-info{flex:1;}
+.summary-label{
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--text-2);
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.summary-value{
+  font-size:24px;
+  font-weight:800;
+  color:var(--text-1);
+  margin-top:2px;
+  line-height:1;
+  display:flex;
+  align-items:baseline;
+  gap:4px;
+}
+.summary-value span{
+  font-size:12px;
+  color:var(--text-3);
+  font-weight:500;
+}
+
+/* ============ FILTERS ============ */
+.filter-bar{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:24px;
+  flex-wrap:wrap;
+}
+.search-box{
+  flex:1;
+  min-width:200px;
+  position:relative;
+}
+.search-box i{
+  position:absolute;
+  left:14px;top:50%;
+  transform:translateY(-50%);
+  color:var(--text-3);
+  font-size:13px;
+}
+.search-box input{
+  width:100%;
+  padding:9px 14px 9px 38px;
+  background:var(--bg-section);
+  border:1px solid transparent;
+  border-radius:8px;
+  font-family:inherit;
+  font-size:13px;
+  color:var(--text-1);
+  outline:none;
+  transition:all 0.18s ease;
+}
+.search-box input:focus{
+  background:#fff;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.1);
+}
+.filter-pills{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.filter-btn{
+  padding:8px 14px;
+  background:var(--bg-section);
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-family:inherit;
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text-2);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:all 0.18s ease;
+}
+.filter-btn:hover{
+  background:#fff;
+  border-color:var(--primary);
+  color:var(--primary-dark);
+}
+.filter-btn i{font-size:10px;}
+
+/* ============ ACTIVE ALERTS SECTION ============ */
+.section-head{
+  margin-bottom:16px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+}
+.section-title{
+  font-size:18px;
+  font-weight:800;
+  color:var(--text-1);
+  letter-spacing:-0.01em;
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--text-3);
+  margin-top:2px;
+}
+.alert-list{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* ALERT CARD */
+.alert-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  display:flex;
+  overflow:hidden;
+  transition:transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.alert-card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-md);
+}
+.alert-indicator-bar{
+  width:5px;
+  flex-shrink:0;
+}
+.alert-card.critical .alert-indicator-bar{background:var(--critical);}
+.alert-card.high .alert-indicator-bar{background:var(--high);}
+.alert-card.medium .alert-indicator-bar{background:var(--medium);}
+
+.alert-content{
+  padding:20px 24px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.alert-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.alert-title-block{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.severity-tag{
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  padding:4px 9px;
+  border-radius:999px;
+}
+.severity-tag.critical{background:var(--critical-bg);color:var(--critical);}
+.severity-tag.high{background:var(--high-bg);color:var(--high);}
+.severity-tag.medium{background:var(--medium-bg);color:var(--medium);}
+
+.alert-title{
+  font-size:16px;
+  font-weight:700;
+  color:var(--text-1);
+}
+.alert-time{
+  font-size:12px;
+  color:var(--text-3);
+  font-weight:500;
+  white-space:nowrap;
+}
+
+.alert-meta{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+}
+.meta-item{
+  font-size:12.5px;
+  color:var(--text-2);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.meta-item i{
+  font-size:11px;
+  color:var(--text-3);
+  width:14px;
+  text-align:center;
+}
+.meta-item strong{color:var(--text-1);font-weight:600;}
+
+.alert-message{
+  font-size:13.5px;
+  color:var(--text-2);
+  line-height:1.5;
+}
+
+.alert-recommendation{
+  background:var(--bg-section);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 14px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+.rec-icon{
+  width:28px;height:28px;
+  border-radius:8px;
+  background:var(--primary-soft);
+  color:var(--primary-dark);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;
+  flex-shrink:0;
+}
+.rec-text{
+  font-size:12.5px;
+  color:var(--text-1);
+  line-height:1.5;
+}
+.rec-text strong{color:var(--primary-dark);font-weight:700;}
+
+.alert-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:4px;
+}
+.status-badge{
+  font-size:11px;
+  font-weight:700;
+  padding:4px 10px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+.status-badge::before{
+  content:"";
+  width:6px;height:6px;
+  border-radius:50%;
+}
+.status-badge.action-required{background:var(--critical-bg);color:var(--critical);}
+.status-badge.action-required::before{background:var(--critical);}
+.status-badge.monitoring{background:var(--medium-bg);color:var(--medium);}
+.status-badge.monitoring::before{background:var(--medium);}
+.status-badge.acknowledged{background:var(--primary-soft);color:var(--primary-dark);}
+.status-badge.acknowledged::before{background:var(--primary-dark);}
+.status-badge.resolved{background:var(--safe-bg);color:var(--safe);}
+.status-badge.resolved::before{background:var(--safe);}
+
+.alert-actions{
+  display:flex;
+  gap:8px;
+}
+.btn-ghost{
+  padding:8px 14px;
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-family:inherit;
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text-2);
+  cursor:pointer;
+  transition:all 0.18s ease;
+}
+.btn-ghost:hover{
+  background:var(--bg-section);
+  border-color:var(--border-strong);
+  color:var(--text-1);
+}
+.btn-primary{
+  padding:8px 16px;
+  background:var(--primary);
+  border:1px solid var(--primary);
+  border-radius:8px;
+  font-family:inherit;
+  font-size:12.5px;
+  font-weight:600;
+  color:#fff;
+  cursor:pointer;
+  transition:all 0.18s ease;
+  box-shadow:0 2px 6px rgba(37,99,235,0.2);
+}
+.btn-primary:hover{
+  background:var(--primary-dark);
+  box-shadow:0 4px 10px rgba(37,99,235,0.3);
+}
+.btn-primary:disabled{
+  background:var(--bg-section);
+  border-color:var(--border);
+  color:var(--text-3);
+  cursor:not-allowed;
+  box-shadow:none;
+}
+
+/* ============ ACTION MODAL ============ */
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(38,50,56,0.45);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.22s ease;
+  padding:20px;
+}
+.modal-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.modal{
+  background:#fff;
+  border-radius:var(--radius-xl);
+  width:100%;
+  max-width:460px;
+  box-shadow:0 30px 60px -15px rgba(38,50,56,0.3);
+  transform:scale(0.92) translateY(10px);
+  transition:transform 0.28s cubic-bezier(0.16,1,0.3,1);
+  overflow:hidden;
+}
+.modal-backdrop.show .modal{transform:scale(1) translateY(0);}
+.modal-header{
+  padding:22px 26px 16px;
+  border-bottom:1px solid var(--border);
+}
+.modal-eyebrow{
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--primary-dark);
+  margin-bottom:4px;
+}
+.modal-title{
+  font-size:18px;
+  font-weight:800;
+  color:var(--text-1);
+}
+.modal-body{
+  padding:20px 26px;
+}
+.modal-context{
+  font-size:13px;
+  color:var(--text-2);
+  margin-bottom:16px;
+  padding:12px 14px;
+  background:var(--bg-section);
+  border-radius:10px;
+}
+.modal-context strong{color:var(--text-1);}
+.action-list{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.action-item{
+  padding:14px 12px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  transition:all 0.18s ease;
+}
+.action-item:hover{
+  border-color:var(--primary);
+  background:var(--primary-soft);
+}
+.action-item i{
+  font-size:16px;
+  color:var(--primary-dark);
+}
+.action-item span{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text-1);
+  text-align:center;
+}
+
+/* ============ DRAWER ============ */
+.drawer-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(38,50,56,0.45);
+  backdrop-filter:blur(4px);
+  z-index:90;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.22s ease;
+}
+.drawer-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.drawer{
+  position:fixed;
+  top:0;right:0;bottom:0;
+  width:440px;
+  max-width:100%;
+  background:#fff;
+  box-shadow:var(--shadow-xl);
+  z-index:95;
+  transform:translateX(100%);
+  transition:transform 0.32s cubic-bezier(0.16,1,0.3,1);
+  display:flex;
+  flex-direction:column;
+}
+.drawer.show{transform:translateX(0);}
+.drawer-header{
+  padding:22px 26px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.drawer-header-left{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.drawer-title{
+  font-size:18px;
+  font-weight:800;
+  color:var(--text-1);
+}
+.drawer-id{
+  font-size:11.5px;
+  color:var(--text-3);
+  font-weight:600;
+  font-family:monospace;
+}
+.drawer-close{
+  width:32px;height:32px;
+  border-radius:8px;
+  border:none;
+  background:var(--bg-section);
+  color:var(--text-2);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+  transition:all 0.18s ease;
+  flex-shrink:0;
+}
+.drawer-close:hover{
+  background:var(--critical-bg);
+  color:var(--critical);
+}
+.drawer-body{
+  flex:1;
+  overflow-y:auto;
+  padding:22px 26px;
+}
+.details-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:24px;
+}
+.detail-item{
+  background:var(--bg-section);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 14px;
+}
+.detail-label{
+  font-size:10.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--text-3);
+}
+.detail-value{
+  font-size:14px;
+  font-weight:700;
+  color:var(--text-1);
+  margin-top:3px;
+}
+.detail-value.critical{color:var(--critical);}
+.detail-value.primary{color:var(--primary-dark);}
+
+.timeline-section{
+  margin-top:16px;
+}
+.timeline-title{
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--text-3);
+  margin-bottom:16px;
+}
+.timeline{
+  position:relative;
+  padding-left:8px;
+}
+.timeline::before{
+  content:"";
+  position:absolute;
+  left:11px;top:8px;bottom:8px;
+  width:2px;
+  background:var(--border);
+  border-radius:2px;
+}
+.timeline-node{
+  position:relative;
+  padding:6px 0 6px 32px;
+}
+.timeline-node::before{
+  content:"";
+  position:absolute;
+  left:4px;top:12px;
+  width:16px;height:16px;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid var(--primary);
+  z-index:1;
+}
+.timeline-node.done::before{
+  background:var(--primary);
+}
+.timeline-time{
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--text-2);
+  font-variant-numeric:tabular-nums;
+}
+.timeline-label{
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--text-1);
+  margin-top:2px;
+}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;
+  bottom:28px;right:28px;
+  background:#fff;
+  border:1px solid var(--safe-border);
+  border-left:3px solid var(--safe);
+  border-radius:12px;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 14px 30px -10px rgba(5,150,105,0.3), 0 6px 12px rgba(38,50,56,0.08);
+  z-index:200;
+  transform:translateY(20px) scale(0.95);
+  opacity:0;
+  pointer-events:none;
+  transition:transform 0.32s cubic-bezier(0.16,1,0.3,1), opacity 0.22s ease;
+  min-width:280px;
+}
+.toast.show{
+  transform:translateY(0) scale(1);
+  opacity:1;
+  pointer-events:auto;
+}
+.toast-icon{
+  width:32px;height:32px;
+  border-radius:9px;
+  background:var(--safe-bg);
+  color:var(--safe);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+  flex-shrink:0;
+}
+.toast-title{
+  font-size:13px;
+  font-weight:700;
+  color:var(--text-1);
+}
+.toast-message{
+  font-size:11.5px;
+  color:var(--text-2);
+  margin-top:1px;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:1100px){
+  .summary-grid{grid-template-columns:repeat(2,1fr);}
+  .details-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:920px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-toggle{display:flex !important;}
+}
+@media (max-width:680px){
+  .container{padding:24px 18px 40px;}
+  .page-header{flex-direction:column;align-items:flex-start;}
+  .header-right{width:100%;justify-content:space-between;}
+  .summary-grid{grid-template-columns:1fr;}
+  .alert-top{flex-direction:column;align-items:flex-start;}
+  .alert-meta{gap:12px;}
+  .action-list{grid-template-columns:1fr;}
+  .details-grid{grid-template-columns:1fr;}
+  .toast{left:16px;right:16px;bottom:16px;min-width:0;}
+  .drawer{width:100%;}
+}
+.mobile-toggle{
+  display:none;
+  position:fixed;
+  top:14px;left:14px;
+  width:36px;height:36px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  align-items:center;justify-content:center;
+  cursor:pointer;
+  z-index:50;
+  box-shadow:var(--shadow-sm);
+  color:var(--text-2);
+  font-size:14px;
+}
+.sidebar-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(38,50,56,0.3);
+  backdrop-filter:blur(2px);
+  z-index:39;
+}
+.sidebar-overlay.show{display:block;}
+</style>
+</head>
+<body>
+
+<!-- Mobile toggle -->
+<button class="mobile-toggle" id="mobileToggle" aria-label="Open navigation">
+  <i class="fa-solid fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">HEATSHIELD</div>
+      <div class="brand-tag">AI Heat Safety</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Operations</div>
+    <a href="Dashboard.html" class="nav-item">
+      <i class="fa-solid fa-gauge-high"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="heat-map.html" class="nav-item">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>Heat Map</span>
+    </a>
+    <a href="Resource.html" class="nav-item">
+      <i class="fa-solid fa-scale-balanced"></i>
+      <span>Resource Allocation</span>
+    </a>
+    <a href="safety.html" class="nav-item">
+      <i class="fa-solid fa-clipboard-check"></i>
+      <span>Safety Actions</span>
+    </a>
+    <a href="Worker.html" class="nav-item">
+      <i class="fa-solid fa-people-group"></i>
+      <span>Worker Groups</span>
+    </a>
+    <a href="Alert.html" class="nav-item active">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Alerts</span>
+    </a>
+    <a href="Incident.html" class="nav-item">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>Incident History</span>
+    </a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-label">System</div>
+    <a href="setting.html" class="nav-item">
+      <i class="fa-solid fa-gear"></i>
+      <span>Settings</span>
+    </a>
+    <a href="help.html" class="nav-item">
+      <i class="fa-solid fa-circle-question"></i>
+      <span>Help</span>
+    </a>
+  </div>
+  
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">JS</div>
+      <div class="user-info">
+        <div class="user-name">Jane Smith</div>
+        <div class="user-role">Texas Operations</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main class="main">
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="page-header">
+      <div class="header-title-block">
+        <div class="page-eyebrow">Command Center</div>
+        <h1 class="page-title">Alerts</h1>
+        <p class="page-subtitle">Monitor active heat risks and take immediate safety action.</p>
+      </div>
+      <div class="header-right">
+        <div class="alert-indicator">
+          <span class="dot"></span>
+          5 Active Alerts
+        </div>
+        <button class="mark-reviewed-btn" id="markAllBtn">
+          <i class="fa-solid fa-check-double"></i>
+          Mark All as Reviewed
+        </button>
+      </div>
+    </header>
+
+    <!-- SUMMARY CARDS -->
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-icon critical"><i class="fa-solid fa-fire"></i></div>
+        <div class="summary-info">
+          <div class="summary-label">Critical</div>
+          <div class="summary-value">2 <span>alerts</span></div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon high"><i class="fa-solid fa-temperature-arrow-up"></i></div>
+        <div class="summary-info">
+          <div class="summary-label">High Risk</div>
+          <div class="summary-value">2 <span>alerts</span></div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon medium"><i class="fa-solid fa-bolt"></i></div>
+        <div class="summary-info">
+          <div class="summary-label">Needs Action</div>
+          <div class="summary-value">3 <span>alerts</span></div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon safe"><i class="fa-solid fa-check-circle"></i></div>
+        <div class="summary-info">
+          <div class="summary-label">Resolved Today</div>
+          <div class="summary-value">7 <span>alerts</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Search alerts..." id="alertSearch">
+      </div>
+      <div class="filter-pills">
+        <button class="filter-btn">Risk Level <i class="fa-solid fa-chevron-down"></i></button>
+        <button class="filter-btn">Site <i class="fa-solid fa-chevron-down"></i></button>
+        <button class="filter-btn">Status <i class="fa-solid fa-chevron-down"></i></button>
+        <button class="filter-btn">Alert Type <i class="fa-solid fa-chevron-down"></i></button>
+        <button class="filter-btn">Time Range <i class="fa-solid fa-chevron-down"></i></button>
+      </div>
+    </div>
+
+    <!-- ACTIVE ALERTS SECTION -->
+    <div class="section-head">
+      <div>
+        <div class="section-title">Active Alerts</div>
+        <div class="section-subtitle">Real-time heat conditions requiring attention</div>
+      </div>
+    </div>
+
+    <div class="alert-list" id="alertList">
+      <!-- Rendered by JS -->
+    </div>
+
+  </div>
+</main>
+
+<!-- ACTION MODAL -->
+<div class="modal-backdrop" id="actionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-eyebrow">Safety Response</div>
+      <div class="modal-title">Take Action</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-context" id="modalContext">
+        Select an action for <strong>Extreme Heat Exposure Detected</strong>
+      </div>
+      <div class="action-list">
+        <div class="action-item" data-action="Start Hydration Break">
+          <i class="fa-solid fa-glass-water"></i>
+          <span>Start Hydration Break</span>
+        </div>
+        <div class="action-item" data-action="Start Work Rotation">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Start Work Rotation</span>
+        </div>
+        <div class="action-item" data-action="Move Workers to Cooling Area">
+          <i class="fa-solid fa-snowflake"></i>
+          <span>Move to Cooling Area</span>
+        </div>
+        <div class="action-item" data-action="Pause Outdoor Work">
+          <i class="fa-solid fa-pause"></i>
+          <span>Pause Outdoor Work</span>
+        </div>
+        <div class="action-item" data-action="Notify Supervisor">
+          <i class="fa-solid fa-bell"></i>
+          <span>Notify Supervisor</span>
+        </div>
+        <div class="action-item" data-action="Mark as Resolved">
+          <i class="fa-solid fa-check"></i>
+          <span>Mark as Resolved</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL DRAWER -->
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="alertDrawer">
+  <div class="drawer-header">
+    <div class="drawer-header-left">
+      <div class="drawer-title">Alert Details</div>
+      <div class="drawer-id" id="drawerAlertId">ALT-1042</div>
+    </div>
+    <button class="drawer-close" id="drawerClose"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- Rendered by JS -->
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon"><i class="fa-solid fa-check"></i></div>
+  <div class="toast-content">
+    <div class="toast-title">Action recorded</div>
+    <div class="toast-message" id="toastMessage">Alert status updated successfully.</div>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+let alerts = [
+  {
+    id: 'ALT-1042',
+    title: 'Extreme Heat Exposure Detected',
+    severity: 'critical',
+    location: 'Houston Site',
+    detected: '10 min ago',
+    detectedTime: '10:42 AM',
+    heatIndex: '108°F',
+    temperature: '98°F',
+    riskScore: '94 / 100',
+    affected: 'Outdoor Operations Team',
+    duration: '2h 15m',
+    message: 'Heat exposure has exceeded the safe operating threshold.',
+    recommendation: 'Suspend outdoor work and move workers to a cooling area.',
+    status: 'Action Required',
+    statusClass: 'action-required',
+    primaryAction: 'Take Action',
+    supervisor: 'James Miller',
+    actionTaken: 'None'
+  },
+  {
+    id: 'ALT-1041',
+    title: 'Worker Exposure Threshold Exceeded',
+    severity: 'high',
+    location: 'Dallas Site',
+    detected: '24 min ago',
+    detectedTime: '10:28 AM',
+    heatIndex: '102°F',
+    temperature: '94°F',
+    riskScore: '87 / 100',
+    affected: 'Construction Team',
+    duration: '1h 45m',
+    message: 'Continuous heat exposure has exceeded the recommended duration.',
+    recommendation: 'Start work rotation and provide a hydration break.',
+    status: 'Action Required',
+    statusClass: 'action-required',
+    primaryAction: 'Take Action',
+    supervisor: 'Sarah Davis',
+    actionTaken: 'None'
+  },
+  {
+    id: 'ALT-1040',
+    title: 'Heat Risk Increasing',
+    severity: 'medium',
+    location: 'Austin Site',
+    detected: '38 min ago',
+    detectedTime: '10:14 AM',
+    heatIndex: '96°F',
+    temperature: '90°F',
+    riskScore: '76 / 100',
+    affected: 'Maintenance Team',
+    duration: '55m',
+    message: 'Heat-risk conditions are increasing at this location.',
+    recommendation: 'Increase hydration frequency and continue monitoring.',
+    status: 'Monitoring',
+    statusClass: 'monitoring',
+    primaryAction: 'Take Action',
+    supervisor: 'Mike Chen',
+    actionTaken: 'Monitoring initiated'
+  },
+  {
+    id: 'ALT-1039',
+    title: 'Worker Heat Stress Alert',
+    severity: 'critical',
+    location: 'Houston Site',
+    detected: '52 min ago',
+    detectedTime: '10:00 AM',
+    heatIndex: '105°F',
+    temperature: '97°F',
+    riskScore: '91 / 100',
+    affected: 'Outdoor Team',
+    duration: '3h 10m',
+    message: 'A worker has reported symptoms consistent with heat stress.',
+    recommendation: 'Move the worker to a cooling area and notify the supervisor.',
+    status: 'Acknowledged',
+    statusClass: 'acknowledged',
+    primaryAction: 'Take Action',
+    supervisor: 'James Miller',
+    actionTaken: 'Worker moved to cooling area'
+  }
+];
+
+let currentActionAlertId = null;
+
+/* ============ RENDER ALERTS ============ */
+function renderAlerts() {
+  const list = document.getElementById('alertList');
+  list.innerHTML = '';
+
+  alerts.forEach(alert => {
+    const card = document.createElement('div');
+    card.className = `alert-card ${alert.severity}`;
+    card.dataset.alertId = alert.id;
+    
+    const buttonLabel = alert.status === 'Resolved' ? 'Resolved' : alert.primaryAction;
+    const buttonClass = alert.status === 'Resolved' ? 'btn-primary' : 'btn-primary';
+    const isDisabled = alert.status === 'Resolved' ? 'disabled' : '';
+
+    card.innerHTML = `
+      <div class="alert-indicator-bar"></div>
+      <div class="alert-content">
+        <div class="alert-top">
+          <div class="alert-title-block">
+            <span class="severity-tag ${alert.severity}">${alert.severity}</span>
+            <h3 class="alert-title">${alert.title}</h3>
+          </div>
+          <span class="alert-time"><i class="fa-regular fa-clock"></i> ${alert.detected}</span>
+        </div>
+        <div class="alert-meta">
+          <span class="meta-item"><i class="fa-solid fa-location-dot"></i> ${alert.location}</span>
+          <span class="meta-item"><i class="fa-solid fa-temperature-high"></i> <strong>${alert.heatIndex}</strong> Heat Index</span>
+          <span class="meta-item"><i class="fa-solid fa-people-group"></i> ${alert.affected}</span>
+        </div>
+        <p class="alert-message">${alert.message}</p>
+        <div class="alert-recommendation">
+          <div class="rec-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="rec-text"><strong>Recommended Action:</strong> ${alert.recommendation}</div>
+        </div>
+        <div class="alert-footer">
+          <span class="status-badge ${alert.statusClass}">${alert.status}</span>
+          <div class="alert-actions">
+            <button class="btn-ghost" data-action="view" data-id="${alert.id}">View Details</button>
+            <button class="${buttonClass}" data-action="take" data-id="${alert.id}" ${isDisabled}>${buttonLabel}</button>
+          </div>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  // Attach event listeners
+  document.querySelectorAll('[data-action="view"]').forEach(btn => {
+    btn.addEventListener('click', (e) => openDrawer(e.target.dataset.id));
+  });
+  document.querySelectorAll('[data-action="take"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (!e.target.disabled) openActionModal(e.target.dataset.id);
+    });
+  });
+}
+
+/* ============ ACTION MODAL ============ */
+function openActionModal(alertId) {
+  const alert = alerts.find(a => a.id === alertId);
+  if (!alert) return;
+  
+  currentActionAlertId = alertId;
+  document.getElementById('modalContext').innerHTML = `Select an action for <strong>${alert.title}</strong>`;
+  document.getElementById('actionModal').classList.add('show');
+}
+
+function closeActionModal() {
+  document.getElementById('actionModal').classList.remove('show');
+  currentActionAlertId = null;
+}
+
+document.querySelectorAll('.action-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const action = item.dataset.action;
+    if (!currentActionAlertId) return;
+    
+    const alert = alerts.find(a => a.id === currentActionAlertId);
+    if (!alert) return;
+
+    // Update alert state
+    alert.actionTaken = action;
+    if (action === 'Mark as Resolved') {
+      alert.status = 'Resolved';
+      alert.statusClass = 'resolved';
+      alert.primaryAction = 'Resolved';
+    } else {
+      alert.status = 'Monitoring';
+      alert.statusClass = 'monitoring';
+      alert.primaryAction = 'Action Taken';
+    }
+
+    closeActionModal();
+    renderAlerts();
+    showToast('Action recorded', `${action} applied to ${alert.id}.`);
+  });
+});
+
+/* ============ DRAWER ============ */
+function openDrawer(alertId) {
+  const alert = alerts.find(a => a.id === alertId);
+  if (!alert) return;
+
+  document.getElementById('drawerAlertId').textContent = alert.id;
+  
+  const body = document.getElementById('drawerBody');
+  body.innerHTML = `
+    <div class="details-grid">
+      <div class="detail-item">
+        <div class="detail-label">Detection Time</div>
+        <div class="detail-value">${alert.detectedTime}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Site</div>
+        <div class="detail-value">${alert.location}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Heat Index</div>
+        <div class="detail-value critical">${alert.heatIndex}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Temperature</div>
+        <div class="detail-value">${alert.temperature}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Heat-Risk Score</div>
+        <div class="detail-value primary">${alert.riskScore}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Affected Team</div>
+        <div class="detail-value">${alert.affected}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Exposure Duration</div>
+        <div class="detail-value">${alert.duration}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Assigned Supervisor</div>
+        <div class="detail-value">${alert.supervisor}</div>
+      </div>
+      <div class="detail-item" style="grid-column: span 2;">
+        <div class="detail-label">Reason for Alert</div>
+        <div class="detail-value" style="font-size: 13px; font-weight: 500; color: var(--text-2);">${alert.message}</div>
+      </div>
+      <div class="detail-item" style="grid-column: span 2;">
+        <div class="detail-label">Recommended Action</div>
+        <div class="detail-value" style="font-size: 13px; font-weight: 600; color: var(--primary-dark);">${alert.recommendation}</div>
+      </div>
+      <div class="detail-item" style="grid-column: span 2;">
+        <div class="detail-label">Action Taken</div>
+        <div class="detail-value">${alert.actionTaken}</div>
+      </div>
+    </div>
+
+    <div class="timeline-section">
+      <div class="timeline-title">Action Timeline</div>
+      <div class="timeline">
+        <div class="timeline-node done">
+          <div class="timeline-time">${alert.detectedTime}</div>
+          <div class="timeline-label">Alert detected</div>
+        </div>
+        ${alert.status !== 'Action Required' ? `
+          <div class="timeline-node done">
+            <div class="timeline-time">+3 min</div>
+            <div class="timeline-label">Supervisor notified</div>
+          </div>
+        ` : `
+          <div class="timeline-node">
+            <div class="timeline-time">Pending</div>
+            <div class="timeline-label">Supervisor notification</div>
+          </div>
+        `}
+        ${alert.actionTaken !== 'None' ? `
+          <div class="timeline-node done">
+            <div class="timeline-time">+6 min</div>
+            <div class="timeline-label">${alert.actionTaken}</div>
+          </div>
+        ` : ''}
+        <div class="timeline-node">
+          <div class="timeline-time">Current</div>
+          <div class="timeline-label">${alert.status}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('alertDrawer').classList.add('show');
+  document.getElementById('drawerBackdrop').classList.add('show');
+}
+
+function closeDrawer() {
+  document.getElementById('alertDrawer').classList.remove('show');
+  document.getElementById('drawerBackdrop').classList.remove('show');
+}
+
+/* ============ TOAST ============ */
+let toastTimer = null;
+function showToast(title, message) {
+  const toast = document.getElementById('toast');
+  toast.querySelector('.toast-title').textContent = title;
+  document.getElementById('toastMessage').textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ============ MARK ALL REVIEWED ============ */
+document.getElementById('markAllBtn').addEventListener('click', () => {
+  showToast('All alerts reviewed', 'Active alert queue has been marked as reviewed.');
+});
+
+/* ============ BINDINGS ============ */
+document.getElementById('actionModal').addEventListener('click', (e) => {
+  if (e.target.id === 'actionModal') closeActionModal();
+});
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+document.getElementById('drawerBackdrop').addEventListener('click', closeDrawer);
+
+/* ============ MOBILE SIDEBAR ============ */
+const mobileToggle = document.getElementById('mobileToggle');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+mobileToggle.addEventListener('click', () => {
+  sidebar.classList.add('open');
+  sidebarOverlay.classList.add('show');
+});
+sidebarOverlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('show');
+});
+
+/* ============ INIT ============ */
+renderAlerts();
+</script>
+</body>
+</html>

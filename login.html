@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeatShield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#F4F6F8;--bg2:#EDEFF2;--card:#FFFFFF;--border:#E5E9ED;--border-lt:#F0F2F5;
+            --t1:#1F2937;--t2:#6B7280;--t3:#9CA3AF;
+            --blue:#3B82F6;--blue-h:#2563EB;--blue-lt:#DBEAFE;--blue-sub:#EFF6FF;
+            --sky:#A9D8EA;--sky-lt:#DDEBFA;
+            --rose-bg:#FFD6D2;--rose-t:#DC2626;
+            --yellow-bg:#FFE2A8;--yellow-t:#A16207;
+            --mint-bg:#D7F0E2;--mint-t:#059669;
+            --sh-sm:0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.03);
+            --sh-md:0 4px 16px rgba(0,0,0,.06),0 1px 4px rgba(0,0,0,.04);
+            --sh-lg:0 10px 40px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04);
+            --r-sm:10px;--r-md:16px;--r-lg:22px;--r-xl:24px
+        }
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+        /* ── Background — Landing page theme with cloud image ── */
+        .bg-atmo{position:fixed;inset:0;z-index:0;overflow:hidden;animation:fadein .9s ease-out}
+        .bg-atmo .bg-cloud{
+            position:absolute;inset:-40px;
+            background:url('https://z-cdn-media.chatglm.cn/files/97e5cd31-0059-4af1-b820-77df7f467d40.jpeg?auth_key=1887212141-f7ce6df0a9834725a8c2d54daada13ad-0-35f07f346f5109ca1177ddb7b9316ddb') center 30% / cover no-repeat;
+            filter:blur(2px) saturate(0.7) brightness(1.08);opacity:.35;
+            -webkit-mask-image:radial-gradient(ellipse 110% 80% at 60% 35%,black 0%,black 50%,transparent 85%);
+            mask-image:radial-gradient(ellipse 110% 80% at 60% 35%,black 0%,black 50%,transparent 85%);
+        }
+        .bg-atmo .bg-overlay{
+            position:absolute;inset:0;
+            background:linear-gradient(135deg,rgba(140,124,244,.72) 0%,rgba(188,173,246,.55) 30%,rgba(219,234,255,.45) 55%,rgba(117,113,135,.65) 80%,rgba(60,54,83,.85) 100%);
+        }
+        @keyframes fadein{from{opacity:0}to{opacity:1}}
+
+        /* ── Nav ── */
+        .top-nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;animation:slidedown .6s ease-out .1s both}
+        @keyframes slidedown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+        .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff}
+        .nav-brand-icon{font-size:22px;line-height:1}
+        .nav-brand-text{font-size:18px;font-weight:600;letter-spacing:-.02em;text-shadow:0 1px 4px rgba(0,0,0,.15)}
+        .nav-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:rgba(255,255,255,.8);text-decoration:none;padding:8px 16px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);backdrop-filter:blur(8px);transition:all .2s}
+        .nav-back:hover{color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.2)}
+        .nav-back svg{width:14px;height:14px}
+
+        /* ── Page Container ── */
+        .page{display:none;position:relative;z-index:5;justify-content:center;align-items:center;min-height:calc(100vh - 72px);padding:30px 40px 50px;animation:pageIn .55s ease-out both}
+        .page.active{display:flex}
+        @keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+        /* ── Shared Card — Landscape, no left stripe ── */
+        .auth-card{background:rgba(255,255,255,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.5);border-radius:var(--r-xl);box-shadow:0 12px 48px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);width:100%;max-width:680px;overflow:hidden}
+        .auth-card-inner{display:block}
+
+        /* Right form — landscape layout */
+        .auth-form{padding:40px 44px 36px}
+
+        .auth-brand{display:flex;align-items:center;gap:9px;margin-bottom:24px}
+        .auth-brand-icon{font-size:20px;line-height:1}
+        .auth-brand-text{font-size:17px;font-weight:600;letter-spacing:-.02em}
+        .auth-title{font-size:24px;font-weight:700;letter-spacing:-.03em;color:var(--t1);margin-bottom:5px}
+        .auth-subtitle{font-size:14px;line-height:1.5;color:var(--t2);margin-bottom:22px}
+
+        /* ── Form Elements ── */
+        .form-group{margin-bottom:14px}
+        .form-label{display:block;font-size:12px;font-weight:600;color:var(--t1);margin-bottom:6px;letter-spacing:-.01em}
+        .form-iw{position:relative;display:flex;align-items:center}
+        .form-ii{position:absolute;left:13px;color:var(--t3);display:flex;align-items:center;pointer-events:none;transition:color .2s}
+        .form-ii svg{width:17px;height:17px}
+        .form-input{width:100%;padding:11px 13px 11px 40px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--t1);background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-sm);outline:none;transition:all .2s}
+        .form-input::placeholder{color:var(--t3)}
+        .form-input:hover{border-color:#D1D5DB}
+        .form-input:focus{border-color:var(--blue);background:var(--blue-sub);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+        .form-iw:focus-within .form-ii{color:var(--blue)}
+        .form-input.error{border-color:#F87171}
+        .form-input.error:focus{box-shadow:0 0 0 3px rgba(248,113,113,.1);border-color:#F87171}
+        .field-err{display:none;font-size:11px;color:#DC2626;margin-top:4px;padding-left:2px}
+        .field-err.show{display:block}
+        .pw-toggle{position:absolute;right:11px;background:none;border:none;padding:4px;cursor:pointer;color:var(--t3);display:flex;align-items:center;border-radius:6px;transition:all .2s}
+        .pw-toggle:hover{color:var(--t2);background:rgba(0,0,0,.04)}
+        .pw-toggle svg{width:17px;height:17px}
+
+        /* Landscape row for name fields */
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .form-opts{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+        .remember{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--t2);user-select:none}
+        .remember input{display:none}
+        .ck{width:17px;height:17px;border:1.5px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all .2s;flex-shrink:0}
+        .ck svg{width:11px;height:11px;color:#fff;opacity:0;transform:scale(.5);transition:all .2s}
+        .remember input:checked+.ck,.terms input:checked+.ck{background:var(--blue);border-color:var(--blue)}
+        .remember input:checked+.ck svg,.terms input:checked+.ck svg{opacity:1;transform:scale(1)}
+        .forgot-link{font-size:12.5px;font-weight:500;color:var(--blue);text-decoration:none;transition:color .15s}
+        .forgot-link:hover{color:var(--blue-h);text-decoration:underline}
+
+        /* Buttons */
+        .btn-primary{width:100%;padding:12px 24px;font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;color:#fff;background:var(--blue);border:none;border-radius:var(--r-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(59,130,246,.25),0 1px 3px rgba(59,130,246,.15);transition:all .2s;letter-spacing:-.01em}
+        .btn-primary:hover{background:var(--blue-h);transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,130,246,.3),0 2px 6px rgba(59,130,246,.2)}
+        .btn-primary:active{transform:translateY(0)}
+        .btn-primary svg{width:15px;height:15px;transition:transform .2s}
+        .btn-primary:hover svg{transform:translateX(3px)}
+
+        /* Continue with Google button */
+        .btn-google{width:100%;padding:11px 24px;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--t1);background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;letter-spacing:-.01em}
+        .btn-google:hover{background:var(--bg);border-color:#D1D5DB;box-shadow:var(--sh-sm)}
+        .btn-google:active{transform:scale(.995)}
+        .btn-google svg{width:18px;height:18px;flex-shrink:0}
+
+        .divider{display:flex;align-items:center;gap:14px;margin:18px 0}
+        .divider-line{flex:1;height:1px;background:var(--border-lt)}
+        .divider-text{font-size:12px;color:var(--t3);font-weight:500}
+
+        .alt-link{text-align:center;font-size:13px;color:var(--t2)}
+        .alt-link a{color:var(--blue);font-weight:600;text-decoration:none;transition:color .15s}
+        .alt-link a:hover{color:var(--blue-h);text-decoration:underline}
+
+        .demo-link{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;padding:9px;font-size:12.5px;font-weight:500;color:var(--t2);text-decoration:none;border-radius:var(--r-sm);border:1px solid var(--border-lt);background:transparent;transition:all .2s}
+        .demo-link:hover{color:var(--t1);border-color:var(--border);background:rgba(255,255,255,.6)}
+        .demo-link svg{width:14px;height:14px;transition:transform .2s}
+        .demo-link:hover svg{transform:translateX(2px)}
+
+        .terms{display:flex;align-items:flex-start;gap:8px;margin-bottom:18px;cursor:pointer;font-size:12px;font-weight:500;color:var(--t2);line-height:1.45;user-select:none}
+        .terms input{display:none}
+        .terms a{color:var(--blue);text-decoration:none;font-weight:600}
+        .terms a:hover{text-decoration:underline}
+
+        .trust-msg{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;font-size:11px;color:var(--t3);font-weight:500}
+        .trust-msg svg{width:12px;height:12px;flex-shrink:0}
+
+        /* ── Forgot Password: centered single card ── */
+        .fp-centered{max-width:480px}
+        .fp-icon-wrap{width:52px;height:52px;border-radius:50%;background:var(--blue-sub);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+        .fp-icon-wrap svg{width:24px;height:24px;color:var(--blue)}
+        .fp-back-link{display:inline-flex;align-items:center;gap:6px;margin-top:18px;font-size:12.5px;font-weight:500;color:var(--blue);text-decoration:none;transition:color .15s}
+        .fp-back-link:hover{color:var(--blue-h);text-decoration:underline}
+        .fp-back-link svg{width:14px;height:14px}
+
+        /* ── Success State ── */
+        .success-state{text-align:center;padding:20px 0}
+        .success-icon{width:52px;height:52px;border-radius:50%;background:var(--mint-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+        .success-icon svg{width:24px;height:24px;color:var(--mint-t)}
+
+        /* ── Mobile ── */
+        @media(max-width:768px){
+            .top-nav{padding:14px 20px}
+            .page{padding:20px 16px 40px}
+            .auth-card{max-width:100%}
+            .auth-form{padding:32px 24px 28px}
+            .auth-title{font-size:22px}
+            .form-row{grid-template-columns:1fr;gap:0}
+            .nav-back span{display:none}
+            .nav-back{padding:8px 10px}
+        }
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    </style>
+</head>
+<body>
+    <div class="bg-atmo">
+        <div class="bg-cloud"></div>
+        <div class="bg-overlay"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="top-nav">
+        <a href="index.html" class="nav-brand">
+            <span class="nav-brand-icon">🛡️</span>
+            <span class="nav-brand-text">HeatShield</span>
+        </a>
+        <a href="index.html" class="nav-back" id="navBack">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            <span>Back to Home</span>
+        </a>
+    </nav>
+
+    <!-- ==================== LOGIN ==================== -->
+    <div class="page active" id="page-login">
+        <div class="auth-card">
+            <div class="auth-card-inner">
+                <div class="auth-form">
+                    <div class="auth-brand"><span class="auth-brand-icon">🛡️</span><span class="auth-brand-text">HeatShield</span></div>
+                    <h2 class="auth-title">Welcome back</h2>
+                    <p class="auth-subtitle">Sign in to continue protecting your workforce.</p>
+                    <form id="loginForm" novalidate>
+                        <div class="form-group">
+                            <label class="form-label" for="loginEmail">Work Email</label>
+                            <div class="form-iw">
+                                <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M22 7l-10 6L2 7"/></svg></span>
+                                <input type="email" id="loginEmail" class="form-input" placeholder="you@company.com" autocomplete="email">
+                            </div>
+                            <span class="field-err" id="loginEmailErr"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="loginPw">Password</label>
+                            <div class="form-iw">
+                                <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+                                <input type="password" id="loginPw" class="form-input" placeholder="Enter your password" autocomplete="current-password">
+                                <button type="button" class="pw-toggle" data-target="loginPw" data-on="loginEyeOn" data-off="loginEyeOff" aria-label="Toggle password">
+                                    <svg id="loginEyeOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg id="loginEyeOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><path d="M14.12 14.12a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-err" id="loginPwErr"></span>
+                        </div>
+                        <div class="form-opts">
+                            <label class="remember"><input type="checkbox"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Remember me</label>
+                            <a href="#" class="forgot-link" data-nav="forgot">Forgot password?</a>
+                        </div>
+                        <button type="submit" class="btn-primary">Sign In <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>
+                    </form>
+                    <div class="divider"><span class="divider-line"></span><span class="divider-text">or</span><span class="divider-line"></span></div>
+                    <button type="button" class="btn-google">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                        Continue with Google
+                    </button>
+                    <p class="alt-link">Don't have a HeatShield account? <a href="#" data-nav="signup">Create an account</a></p>
+                    <a href="Dashboard.html" class="demo-link">Want to explore first? <span style="font-weight:600;color:var(--blue)">View Live Demo</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+                    <div class="trust-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Your workplace safety data is securely protected.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SIGNUP ==================== -->
+    <div class="page" id="page-signup">
+        <div class="auth-card">
+            <div class="auth-card-inner">
+                <div class="auth-form">
+                    <div class="auth-brand"><span class="auth-brand-icon">🛡️</span><span class="auth-brand-text">HeatShield</span></div>
+                    <h2 class="auth-title">Create your account</h2>
+                    <p class="auth-subtitle">Join thousands of safety teams using HeatShield.</p>
+                    <form id="signupForm" novalidate>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="suFname">First Name</label>
+                                <div class="form-iw">
+                                    <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                                    <input type="text" id="suFname" class="form-input" placeholder="Jane" autocomplete="given-name">
+                                </div>
+                                <span class="field-err" id="suFnameErr"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="suLname">Last Name</label>
+                                <div class="form-iw">
+                                    <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                                    <input type="text" id="suLname" class="form-input" placeholder="Smith" autocomplete="family-name">
+                                </div>
+                                <span class="field-err" id="suLnameErr"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="suEmail">Work Email</label>
+                            <div class="form-iw">
+                                <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M22 7l-10 6L2 7"/></svg></span>
+                                <input type="email" id="suEmail" class="form-input" placeholder="you@company.com" autocomplete="email">
+                            </div>
+                            <span class="field-err" id="suEmailErr"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="suCompany">Company</label>
+                            <div class="form-iw">
+                                <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/></svg></span>
+                                <input type="text" id="suCompany" class="form-input" placeholder="Acme Corp" autocomplete="organization">
+                            </div>
+                            <span class="field-err" id="suCompanyErr"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="suPw">Password</label>
+                            <div class="form-iw">
+                                <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+                                <input type="password" id="suPw" class="form-input" placeholder="Min. 8 characters" autocomplete="new-password">
+                                <button type="button" class="pw-toggle" data-target="suPw" data-on="suEyeOn" data-off="suEyeOff" aria-label="Toggle password">
+                                    <svg id="suEyeOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg id="suEyeOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><path d="M14.12 14.12a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                </button>
+                            </div>
+                            <span class="field-err" id="suPwErr"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="suPw2">Confirm Password</label>
+                            <div class="form-iw">
+                                <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+                                <input type="password" id="suPw2" class="form-input" placeholder="Re-enter password" autocomplete="new-password">
+                            </div>
+                            <span class="field-err" id="suPw2Err"></span>
+                        </div>
+                        <label class="terms"><input type="checkbox" id="suTerms"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                        <button type="submit" class="btn-primary">Create Account</button>
+                    </form>
+                    <div class="divider"><span class="divider-line"></span><span class="divider-text">or</span><span class="divider-line"></span></div>
+                    
+                    <p class="alt-link">Already have an account? <a href="#" data-nav="login">Sign in</a></p>
+                    <div class="trust-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Your data is encrypted and never shared.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FORGOT PASSWORD ==================== -->
+    <div class="page" id="page-forgot">
+        <div class="auth-card fp-centered" id="fpCard">
+            <div class="auth-card-inner">
+                <div class="auth-form" id="fpFormWrap">
+                    <div class="fp-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg></div>
+                    <h2 class="auth-title">Reset your password</h2>
+                    <p class="auth-subtitle">Enter your work email and we'll send you a link to reset your password.</p>
+                    <form id="fpForm" novalidate>
+                        <div class="form-group">
+                            <label class="form-label" for="fpEmail">Work Email</label>
+                            <div class="form-iw">
+                                <span class="form-ii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M22 7l-10 6L2 7"/></svg></span>
+                                <input type="email" id="fpEmail" class="form-input" placeholder="you@company.com" autocomplete="email">
+                            </div>
+                            <span class="field-err" id="fpEmailErr"></span>
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top:4px">Send Reset Link</button>
+                    </form>
+                    <a href="#" class="fp-back-link" data-nav="login"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>Back to sign in</a>
+                    <div class="trust-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Your data is encrypted and secure.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    const SUPABASE_URL = "https://keztqrrtzhxjvstfuqfp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_79OlgP1MibPc_l0l7MN5Qg_dqID04ua";
+
+    const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+</script>
+    <script>
+        /* ═══════════ Router ═══════════ */
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById('page-' + page);
+            if (target) {
+                target.classList.remove('active');
+                void target.offsetWidth;
+                target.classList.add('active');
+            }
+            window.location.hash = page;
+            document.title = 'HeatShield — ' + ({login:'Sign In',signup:'Create Account',forgot:'Reset Password'}[page] || '');
+        }
+
+        function handleHash() {
+            const hash = window.location.hash.replace('#', '') || 'login';
+            if (['login','signup','forgot'].includes(hash)) navigateTo(hash);
+            else navigateTo('login');
+        }
+        window.addEventListener('hashchange', handleHash);
+        handleHash();
+
+        /* ═══════════ Data-nav links ═══════════ */
+        document.querySelectorAll('[data-nav]').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateTo(this.dataset.nav);
+            });
+        });
+
+        /* ═══════════ Password toggles ═══════════ */
+        document.querySelectorAll('.pw-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const inp = document.getElementById(this.dataset.target);
+                const on = document.getElementById(this.dataset.on);
+                const off = document.getElementById(this.dataset.off);
+                if (inp.type === 'password') { inp.type = 'text'; on.style.display = 'none'; off.style.display = 'block'; }
+                else { inp.type = 'password'; on.style.display = 'block'; off.style.display = 'none'; }
+            });
+        });
+
+        /* ═══════════ Clear errors on input ═══════════ */
+        document.querySelectorAll('.form-input').forEach(inp => {
+            inp.addEventListener('input', function() {
+                this.classList.remove('error');
+                const err = this.closest('.form-group').querySelector('.field-err');
+                if (err) err.classList.remove('show');
+            });
+        });
+
+        /* ═══════════ Validation helpers ═══════════ */
+        function showErr(id, msg) {
+            const inp = document.getElementById(id);
+            inp.classList.add('error');
+            const errEl = document.getElementById(id + 'Err');
+            if (errEl) { errEl.textContent = msg; errEl.classList.add('show'); }
+        }
+        const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const v = id => document.getElementById(id).value.trim();
+
+        /* ═══════════ Login ═══════════ */
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            let ok = true;
+
+            if (!v('loginEmail')) {
+                showErr('loginEmail', 'Work email is required.');
+                ok = false;
+            } 
+            else if (!emailRe.test(v('loginEmail'))) {
+             showErr('loginEmail', 'Please enter a valid email address.');
+             ok = false;
+           }
+
+           if (!v('loginPw')) {
+               showErr('loginPw', 'Password is required.');
+               ok = false;
+            }
+
+           if (!ok) return;
+
+           const email = v('loginEmail');
+           const password = v('loginPw');
+
+           try {
+
+              const { data, error } = await supabaseClient.auth.signInWithPassword({
+                  email: email,
+                  password: password
+              });
+
+              if (error) {
+                  console.error('Login error:', error);
+                  alert('Login failed: ' + error.message);
+                  return;
+              }
+
+              console.log('Login successful:', data.user);
+
+             // Login successful
+              window.location.href = '/Dashboard.html';
+
+          } catch (err) {
+
+             console.error('Unexpected login error:', err);
+             alert('Something went wrong: ' + err.message);
+
+          }
+      });
+
+        /* ═══════════ Signup ═══════════ */
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+
+          let ok = true;
+
+          if (!v('suFname')) {
+             showErr('suFname', 'Required.');
+             ok = false;
+           }
+
+          if (!v('suLname')) {
+             showErr('suLname', 'Required.');
+             ok = false;
+           }
+
+          if (!v('suEmail')) {
+             showErr('suEmail', 'Work email is required.');
+             ok = false;
+          } else if (!emailRe.test(v('suEmail'))) {
+              showErr('suEmail', 'Please enter a valid email.');
+              ok = false;
+          }
+
+          if (!v('suCompany')) {
+             showErr('suCompany', 'Required.');
+             ok = false;
+          }
+
+          if (!v('suPw')) {
+             showErr('suPw', 'Password is required.');
+             ok = false;
+          } else if (v('suPw').length < 8) {
+             showErr('suPw', 'Min. 8 characters.');
+             ok = false;
+          }
+
+          if (!v('suPw2')) {
+             showErr('suPw2', 'Please confirm your password.');
+             ok = false;
+          } else if (v('suPw') !== v('suPw2')) {
+             showErr('suPw2', 'Passwords do not match.');
+             ok = false;
+          }
+
+          if (!document.getElementById('suTerms').checked) {
+              showErr('suPw2', 'Please agree to the Terms.');
+              ok = false;
+          }
+
+          if (!ok) return;
+
+          const fname = v('suFname');
+          const lname = v('suLname');
+          const email = v('suEmail');
+          const company = v('suCompany');
+          const password = v('suPw');
+
+          try {
+
+        // 1. Create Supabase Auth account
+              const { data, error } = await supabaseClient.auth.signUp({
+                  email: email,
+                  password: password,
+                  options: {
+                      data: {
+                         first_name: fname,
+                         last_name: lname,
+                         company: company
+                      }
+                  }
+              });
+
+              if (error) {
+                  console.error('Signup error:', error);
+                  alert('Signup failed: ' + error.message);
+                  return;
+              }
+
+        // User created successfully
+        if (!data.user) {
+          alert('Signup failed. Please try again.');
+          return;
+        }
+
+        // With email confirmation ON, there may be no session yet.
+        // Do NOT insert into profiles here.
+        if (!data.session) {
+            alert(
+                 'Account created successfully! ' +
+                 'Please check your email and click the confirmation link. ' +
+                 'After confirming, return to HeatShield and sign in.'
+           );
+
+           return;
+        }
+
+        // This only runs if Supabase gives us a session immediately
+        const { error: profileError } = await supabaseClient
+            .from('profiles')
+            .upsert({
+                 id: data.user.id,
+                 first_name: fname,
+                 last_name: lname,
+                 work_email: email,
+                 company: company
+              }, {
+                 onConflict: 'id'
+              });
+
+          if (profileError) {
+              console.error('Profile error:', profileError);
+              alert('Account created, but profile could not be saved: ' + profileError.message);
+              return;
+          }
+
+          window.location.href = 'Dashboard.html';
+
+           } catch (err) {
+               console.error('Unexpected signup error:', err);
+               alert('Something went wrong: ' + err.message);
+           }
+        });
+        /* ═══════════ Forgot Password ═══════════ */
+        document.getElementById('fpForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            let ok = true;
+
+            if (!v('fpEmail')) {
+              showErr('fpEmail', 'Email is required.');
+              ok = false;
+            } 
+            else if (!emailRe.test(v('fpEmail'))) {
+                 showErr('fpEmail', 'Please enter a valid email.');
+                 ok = false;
+            }
+
+            if (!ok) return;
+
+            const email = v('fpEmail');
+
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(
+                    email,
+                    {
+                        redirectTo: new URL(
+                            'reset-password.html',
+                            window.location.href
+                        ).href
+                    }
+                );
+
+                if (error) {
+                    console.error('Password reset error:', error);
+                    alert('Could not send reset email: ' + error.message);
+                    return;
+                }
+
+                const wrap = document.getElementById('fpFormWrap');
+
+                wrap.innerHTML = `
+                    <div class="success-state">
+
+                         <div class="success-icon">
+                             <svg viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="2.5"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round">
+                                 <polyline points="20 6 9 17 4 12"/>
+                             </svg>
+                         </div>
+
+                         <h2 class="auth-title">Check your email</h2>
+
+                         <p class="auth-subtitle" style="margin-bottom:8px">
+                             We've sent a password reset link to:
+                         </p>
+
+                         <p style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:24px">
+                              ${email}
+                         </p>
+
+                         <a href="#" class="fp-back-link" data-nav="login">
+                             <svg viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  width="14"
+                                  height="14">
+                                 <path d="M19 12H5"/>
+                                 <path d="M12 19l-7-7 7-7"/>
+                             </svg>
+                             Back to sign in
+                          </a>
+
+                       </div>
+                   `;
+
+                    wrap.querySelector('[data-nav]').addEventListener('click', function(ev) {
+                         ev.preventDefault();
+                         navigateTo('login');
+                    });
+
+                } catch (err) {
+                    console.error('Unexpected reset error:', err);
+                    alert('Something went wrong: ' + err.message);
+                }
+             });
+        /* ═══════════ Google Login ═══════════ */
+
+document.querySelector('.btn-google').addEventListener('click', async function () {
+
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: new URL('Dashboard.html', window.location.href).href
+        }
+    });
+
+    if (error) {
+        console.error('Google Login Error:', error.message);
+        alert('Google login failed: ' + error.message);
+    }
+
+});
+    </script>
+</body>
+</html>
