@@ -28,10 +28,11 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/", (req, res) => {
-  res.send("HeatShield server is running ✅");
-});
+app.use(express.static(__dirname));
 
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/landing.html");
+});
 // FortyGuard Environmental Parameters
 app.post("/api/fortyguard-test", async (req, res) => {
   try {
