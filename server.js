@@ -36,6 +36,9 @@ app.get("/", (req, res) => {
 app.get("/login.html", (req, res) => {
   res.sendFile(__dirname + "/login.html");
 });
+app.get("/Dashboard.html", (req, res) => {
+  res.sendFile(__dirname + "/Dashboard.html");
+});
 // FortyGuard Environmental Parameters
 app.post("/api/fortyguard-test", async (req, res) => {
   try {
